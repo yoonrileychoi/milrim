@@ -1,0 +1,88 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+@theme {
+  --color-paper: #F4F6FB;
+  --color-ink: #14213D;
+  --color-pigment: #1D4E89;
+  --color-accent: #E8A33D;
+  --color-wash: #DCE6F2;
+  --color-ink-70: color-mix(in srgb, #14213D 70%, transparent);
+  --color-ink-45: color-mix(in srgb, #14213D 45%, transparent);
+  --color-pigment-d: #163C6B;
+  --color-paper-d: #E9ECF4;
+
+  --font-serif: 'Noto Serif KR', serif;
+  --font-sans: 'Pretendard', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 14px;
+
+  --shadow-card: 0 2px 12px color-mix(in srgb, #14213D 8%, transparent);
+  --shadow-soft: 0 1px 4px color-mix(in srgb, #14213D 6%, transparent);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font-family: var(--font-sans);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--color-paper);
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--color-paper);
+  box-shadow: 0 0 0 1px var(--color-wash);
+}
+
+.hl {
+  background: linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) 0%);
+  background-size: 0% 40%;
+  background-repeat: no-repeat;
+  background-position: left 90%;
+  padding-bottom: 2px;
+  transition: background-size 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hl.lit {
+  background-size: 100% 40%;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+.page-content {
+  flex: 1;
+  padding: 0 20px;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+}
