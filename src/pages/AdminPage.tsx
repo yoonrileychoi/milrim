@@ -12,7 +12,7 @@ export default function AdminPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
   return (
-    <Layout title="관리자">
+    <Layout title="관리자 모드">
       <div className="fade-in">
         {/* KPI cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
@@ -22,9 +22,8 @@ export default function AdminPage() {
             <div style={{ fontSize: 12, color: '#2E5A3A', fontWeight: 600, marginTop: 4 }}>오늘 +37</div>
           </div>
           <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: '22px 24px' }}>
-            <div style={{ fontSize: 13, color: '#9a9482' }}>활성 사용자 7일</div>
+            <div style={{ fontSize: 13, color: '#9a9482' }}>7일간 활성 사용자 총합</div>
             <div style={{ fontSize: 28, fontWeight: 800, color: '#2B2A26', marginTop: 6 }}>842</div>
-            <div style={{ fontSize: 12, color: '#2E5A3A', fontWeight: 600, marginTop: 4 }}>율 65.6%</div>
           </div>
           <div style={{ background: '#2E5A3A', borderRadius: 20, padding: '22px 24px' }}>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>누적 AI 재계획</div>
@@ -36,7 +35,7 @@ export default function AdminPage() {
         {/* user table */}
         <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 22, marginTop: 16, overflowX: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 22px 12px', minWidth: 560 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#2B2A26' }}>사용자 목록</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#2B2A26' }}>사용자 관리</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FAF6EE', border: '1px solid #E7E1D3', borderRadius: 10, padding: '8px 12px', width: 220 }}>
               <span className="ms" style={{ fontSize: 18, color: '#b3ad9d' }}>search</span>
               <span style={{ fontSize: 13, color: '#b3ad9d' }}>이메일로 검색</span>
