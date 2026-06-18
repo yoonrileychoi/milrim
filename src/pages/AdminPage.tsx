@@ -24,6 +24,7 @@ export default function AdminPage() {
           <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: '22px 24px' }}>
             <div style={{ fontSize: 13, color: '#9a9482' }}>7일간 활성 사용자 총합</div>
             <div style={{ fontSize: 28, fontWeight: 800, color: '#2B2A26', marginTop: 6 }}>842</div>
+            <div style={{ fontSize: 12, color: '#2E5A3A', fontWeight: 600, marginTop: 4 }}>오늘 +15</div>
           </div>
           <div style={{ background: '#2E5A3A', borderRadius: 20, padding: '22px 24px' }}>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>누적 AI 재계획</div>
