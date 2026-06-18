@@ -1,7 +1,19 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+
+interface CompleteState {
+  seconds?: number
+  target?: number
+  unit?: string
+}
 
 export default function CompletePage() {
   const navigate = useNavigate()
+  const { state } = useLocation()
+  const { seconds = 0, target, unit } = (state ?? {}) as CompleteState
+
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  const timeStr = mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`
 
   return (
     <div className="fade-in" style={{
@@ -22,12 +34,14 @@ export default function CompletePage() {
         <div style={{ display: 'flex', gap: 12, marginTop: 30 }}>
           <div style={{ background: '#fff', border: '1px solid #EFEADD', borderRadius: 16, padding: '14px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: 11.5, color: '#9a9482' }}>오늘 학습</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: '#2B2A26', marginTop: 3 }}>25:00</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#2B2A26', marginTop: 3 }}>{timeStr}</div>
           </div>
-          <div style={{ background: '#fff', border: '1px solid #EFEADD', borderRadius: 16, padding: '14px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: 11.5, color: '#9a9482' }}>진행률</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: '#2E5A3A', marginTop: 3 }}>87%</div>
-          </div>
+          {target != null && (
+            <div style={{ background: '#fff', border: '1px solid #EFEADD', borderRadius: 16, padding: '14px 20px', textAlign: 'center' }}>
+              <div style={{ fontSize: 11.5, color: '#9a9482' }}>달성량</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#2E5A3A', marginTop: 3 }}>{target}{unit}</div>
+            </div>
+          )}
         </div>
         <button
           onClick={() => navigate('/home')}
