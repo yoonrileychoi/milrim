@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -8,19 +8,36 @@ const unitOptions = ['페이지', '문제', '강의', '시간', '기타']
 const timeToMinutes: Record<string, number> = {
   '30분': 30, '1시간': 60, '2시간': 120, '3시간': 180, '4시간 이상': 240,
 }
+const minutesToTime: Record<number, string> = {
+  30: '30분', 60: '1시간', 120: '2시간', 180: '3시간', 240: '4시간 이상',
+}
+
+interface EditState {
+  planId?: string
+  title?: string
+  startDate?: string
+  endDate?: string
+  dailyMinutes?: number
+  unit?: string
+  totalAmount?: number
+}
 
 export default function GoalCreatePage() {
   const navigate = useNavigate()
+  const { state } = useLocation()
   const { user } = useAuth()
+  const edit = (state ?? {}) as EditState
+  const isEdit = !!edit.planId
+
   const today = new Date().toISOString().split('T')[0]
   const maxDate = (() => { const d = new Date(); d.setMonth(d.getMonth() + 6); return d.toISOString().split('T')[0] })()
 
-  const [goalText, setGoalText] = useState('')
-  const [startDate, setStartDate] = useState(today)
-  const [endDate, setEndDate] = useState('')
-  const [selectedTime, setSelectedTime] = useState('2시간')
-  const [selectedUnit, setSelectedUnit] = useState('페이지')
-  const [totalAmount, setTotalAmount] = useState('')
+  const [goalText, setGoalText] = useState(edit.title || '')
+  const [startDate, setStartDate] = useState(edit.startDate || today)
+  const [endDate, setEndDate] = useState(edit.endDate || '')
+  const [selectedTime, setSelectedTime] = useState(minutesToTime[edit.dailyMinutes ?? 0] || '2시간')
+  const [selectedUnit, setSelectedUnit] = useState(edit.unit || '페이지')
+  const [totalAmount, setTotalAmount] = useState(edit.totalAmount?.toString() || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -37,17 +54,25 @@ export default function GoalCreatePage() {
     setLoading(true)
     setError('')
 
+    const planData = {
+      title: goalText.trim(),
+      start_date: startDate,
+      end_date: endDate,
+      daily_minutes: timeToMinutes[selectedTime],
+      unit: selectedUnit,
+      total_amount: parseInt(totalAmount),
+    }
+
+    if (isEdit) {
+      const { error: err } = await supabase.from('milrim_plans').update(planData).eq('id', edit.planId!)
+      if (err) { setError('저장에 실패했어요. 다시 시도해주세요.'); setLoading(false); return }
+      navigate('/plan/ai-loading', { state: { planId: edit.planId, ...planData, dailyMinutes: planData.daily_minutes, startDate: planData.start_date, endDate: planData.end_date, totalAmount: planData.total_amount } })
+      return
+    }
+
     const { data, error: err } = await supabase
       .from('milrim_plans')
-      .insert({
-        user_id: user!.id,
-        title: goalText.trim(),
-        start_date: startDate,
-        end_date: endDate,
-        daily_minutes: timeToMinutes[selectedTime],
-        unit: selectedUnit,
-        total_amount: parseInt(totalAmount),
-      })
+      .insert({ user_id: user!.id, ...planData })
       .select('id')
       .single()
 
@@ -86,7 +111,7 @@ export default function GoalCreatePage() {
           >
             <span className="ms" style={{ fontSize: 22 }}>arrow_back</span>
           </div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#2B2A26' }}>새 목표 만들기</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: '#2B2A26' }}>{isEdit ? '계획 수정하기' : '새 목표 만들기'}</div>
         </div>
 
         {/* 학습 목표명 */}
@@ -209,7 +234,7 @@ export default function GoalCreatePage() {
           }}
         >
           <span className="ms" style={{ fontSize: 20 }}>auto_awesome</span>
-          {loading ? '저장 중...' : 'AI로 계획 생성하기'}
+          {loading ? '저장 중...' : isEdit ? 'AI로 계획 다시 생성하기' : 'AI로 계획 생성하기'}
         </button>
       </div>
     </div>

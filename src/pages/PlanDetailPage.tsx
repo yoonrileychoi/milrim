@@ -219,7 +219,7 @@ export default function PlanDetailPage() {
 
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           <button
-            onClick={() => navigate('/plan/ai-loading', { state: { planId: plan.id, title: plan.title, startDate: plan.start_date, endDate: plan.end_date, dailyMinutes: plan.daily_minutes, unit: plan.unit, totalAmount: plan.total_amount } })}
+            onClick={() => navigate('/plan/new', { state: { planId: plan.id, title: plan.title, startDate: plan.start_date, endDate: plan.end_date, dailyMinutes: plan.daily_minutes, unit: plan.unit, totalAmount: plan.total_amount } })}
             style={{ flex: 1, border: '1px solid #2E5A3A', background: '#fff', color: '#2E5A3A', fontSize: 14, fontWeight: 700, padding: 14, borderRadius: 14, fontFamily: 'var(--font)', cursor: 'pointer' }}
           >
             계획 수정
@@ -227,7 +227,7 @@ export default function PlanDetailPage() {
           <button
             onClick={handleDelete}
             disabled={deleting}
-            style={{ border: '1px solid #E2C9C2', background: '#fff', color: '#B5524A', fontSize: 14, fontWeight: 600, padding: '14px 18px', borderRadius: 14, fontFamily: 'var(--font)', cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1 }}
+            style={{ flex: 1, border: '1px solid #E2C9C2', background: '#fff', color: '#B5524A', fontSize: 14, fontWeight: 600, padding: 14, borderRadius: 14, fontFamily: 'var(--font)', cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1 }}
           >
             {deleting ? '삭제 중...' : '삭제'}
           </button>

@@ -111,6 +111,13 @@ export default function HomePage() {
         </div>
       ) : (
         <>
+          {/* Goal cards header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2A26' }}>오늘의 계획</div>
+            {goals.length >= 4 && (
+              <div onClick={() => navigate('/plan')} style={{ fontSize: 12.5, color: '#2E5A3A', fontWeight: 700, cursor: 'pointer' }}>더 보기...</div>
+            )}
+          </div>
           {/* Goal cards — always 4 slots, filler with "새 계획 추가" */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
             {goals.slice(0, 4).map((g, i) => {
