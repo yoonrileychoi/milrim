@@ -75,11 +75,20 @@ export default function PlanDetailPage() {
       const target = i === totalDays - 1 ? remaining : Math.ceil(remaining / daysLeft)
       const d = new Date(start)
       d.setDate(d.getDate() + i)
-      rows.push({ plan_id: plan.id, user_id: user.id, date: d.toISOString().split('T')[0], target_amount: target, min_amount: Math.max(1, Math.ceil(target * 0.2)) })
+      rows.push({ plan_id: plan.id, user_id: user.id, date: d.toISOString().split('T')[0], target_amount: target, min_amount: Math.max(1, Math.ceil(target * 0.2)), study_seconds: 0 })
       remaining -= target
     }
-    const { data } = await supabase.from('milrim_plan_days').insert(rows).select()
-    if (data) setDays(data as PlanDay[])
+    const { data, error } = await supabase.from('milrim_plan_days').insert(rows).select()
+    if (error) {
+      console.error('plan_days insert error:', error)
+    }
+    if (data && data.length > 0) {
+      setDays(data as PlanDay[])
+    } else {
+      // insert 성공해도 select 실패할 수 있으므로 재조회
+      const { data: refetch } = await supabase.from('milrim_plan_days').select('*').eq('plan_id', plan.id).order('date', { ascending: true })
+      if (refetch) setDays(refetch as PlanDay[])
+    }
     setGenerating(false)
   }
 

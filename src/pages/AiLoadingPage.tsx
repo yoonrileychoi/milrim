@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 
 interface PlanState {
   planId?: string
@@ -31,6 +32,7 @@ function generateDays(startDate: string, endDate: string, totalAmount: number, p
       date: d.toISOString().split('T')[0],
       target_amount: target,
       min_amount: minAmount,
+      study_seconds: 0,
     })
     remaining -= target
   }
@@ -40,22 +42,21 @@ function generateDays(startDate: string, endDate: string, totalAmount: number, p
 export default function AiLoadingPage() {
   const navigate = useNavigate()
   const { state } = useLocation()
+  const { user } = useAuth()
   const { planId, title, startDate, endDate, dailyMinutes, unit, totalAmount } = (state ?? {}) as PlanState
   const called = useRef(false)
 
   useEffect(() => {
-    if (!planId || !startDate || !endDate || !totalAmount || called.current) return
+    if (!planId || !startDate || !endDate || !totalAmount || !user || called.current) return
     called.current = true
 
     const run = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      const userId = session?.user?.id
-      if (!userId) return
-
+      const userId = user.id
       let success = false
 
       // Edge Function 시도 (Solar AI)
       try {
+        const { data: { session } } = await supabase.auth.getSession()
         const res = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-plan`,
           {
@@ -87,7 +88,7 @@ export default function AiLoadingPage() {
     Promise.all([run(), minWait]).then(() => {
       navigate(`/plan/${planId}`, { replace: true })
     })
-  }, [planId])
+  }, [planId, user])
 
   return (
     <div className="fade-in" style={{

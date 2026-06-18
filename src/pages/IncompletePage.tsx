@@ -1,7 +1,46 @@
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
+
+interface IncompleteState {
+  planId?: string
+  planDayId?: string
+}
 
 export default function IncompletePage() {
   const navigate = useNavigate()
+  const { state } = useLocation()
+  const { planId, planDayId } = (state ?? {}) as IncompleteState
+
+  const [plan, setPlan] = useState<{ title: string; end_date: string; unit: string } | null>(null)
+  const [todayTarget, setTodayTarget] = useState<number>(0)
+  const [remainingDays, setRemainingDays] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!planId || !planDayId) { setLoading(false); return }
+    const today = new Date().toISOString().split('T')[0]
+    Promise.all([
+      supabase.from('milrim_plans').select('title, end_date, unit').eq('id', planId).single(),
+      supabase.from('milrim_plan_days').select('target_amount').eq('id', planDayId).single(),
+    ]).then(([{ data: planData }, { data: dayData }]) => {
+      if (planData) {
+        setPlan(planData)
+        const diff = Math.max(0, Math.round((new Date(planData.end_date).getTime() - new Date(today).getTime()) / 86400000))
+        setRemainingDays(diff)
+      }
+      if (dayData) setTodayTarget(dayData.target_amount)
+      setLoading(false)
+    })
+  }, [planId, planDayId])
+
+  if (loading) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FAF6EE' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E2DCCB', borderTopColor: '#2E5A3A', animation: 'dspin 0.9s linear infinite' }} />
+      </div>
+    )
+  }
 
   return (
     <div className="fade-in" style={{
@@ -19,16 +58,18 @@ export default function IncompletePage() {
         <div style={{ background: '#fff', border: '1px solid #EFEADD', borderRadius: 16, padding: '16px 18px', marginTop: 26, width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13, color: '#847f6f' }}>오늘 학습량</span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: '#2B2A26' }}>뷰와 트리거 9p</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#2B2A26' }}>
+              {plan ? `${todayTarget}${plan.unit}` : '-'}
+            </span>
           </div>
           <div style={{ height: 1, background: '#F0EADC', margin: '11px 0' }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13, color: '#847f6f' }}>남은 기간</span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: '#2B2A26' }}>목표일까지 12일</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#2B2A26' }}>목표일까지 {remainingDays}일</span>
           </div>
         </div>
         <button
-          onClick={() => navigate('/replan')}
+          onClick={() => navigate('/replan', { state: { planId } })}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             border: 'none', background: '#2E5A3A', color: '#fff',
