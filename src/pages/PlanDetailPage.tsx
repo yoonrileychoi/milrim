@@ -194,21 +194,21 @@ export default function PlanDetailPage() {
                 }}>
                   <div style={{
                     fontSize: 12, fontWeight: 700,
-                    color: isMuted ? '#c2bba8' : isDone ? '#9CC36B' : '#2E5A3A',
+                    color: isIncomplete ? '#d8d3c8' : isMuted ? '#c2bba8' : isDone ? '#9CC36B' : '#2E5A3A',
                     width: 44, flexShrink: 0,
                   }}>
                     {fmtShort(day.date)}
                   </div>
                   <div style={{
                     flex: 1, fontSize: 13.5,
-                    color: isMuted ? '#c2bba8' : '#2B2A26',
+                    color: isIncomplete ? '#d8d3c8' : isMuted ? '#c2bba8' : '#2B2A26',
                     fontWeight: isActive ? 600 : 500,
                     textDecoration: isDone || isIncomplete ? 'line-through' : 'none',
                   }}>
                     {day.target_amount}{plan.unit}
                   </div>
                   {isDone && <span className="ms" style={{ fontSize: 18, color: isMuted ? '#c2bba8' : '#9CC36B' }}>check_circle</span>}
-                  {isIncomplete && <div style={{ fontSize: 11, color: '#b3ad9d', fontWeight: 600 }}>계획 조정 완료</div>}
+                  {isIncomplete && <div style={{ fontSize: 10, color: '#d0cbbe', fontWeight: 600 }}>조정 완료</div>}
                   {isActive && <div style={{ fontSize: 11, color: '#9a9482' }}>진행중</div>}
                   {isFuture && isDone && <span className="ms" style={{ fontSize: 18, color: '#9CC36B' }}>check_circle</span>}
                 </div>
