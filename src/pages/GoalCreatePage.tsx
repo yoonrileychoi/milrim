@@ -89,9 +89,9 @@ export default function GoalCreatePage() {
               value={goalText}
               onChange={e => setGoalText(e.target.value)}
               style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font)', fontSize: 15, fontWeight: 600, color: '#2B2A26', width: '100%' }}
-              placeholder="예: 중간고사 미문학개론 A+, 토익 900, 기사 자격증"
             />
           </div>
+          <div style={{ fontSize: 11.5, color: '#b3ad9d', marginTop: 6 }}>예: 중간고사 미문학개론 A+, 토익 900, 기사 자격증</div>
         </div>
 
         {/* 목표일 */}

@@ -45,7 +45,7 @@ export default function MyPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
               <span className="ms" style={{ fontSize: 20, color: '#6B6757' }}>admin_panel_settings</span>
-              <span style={{ fontSize: 14.5, color: '#2B2A26' }}>관리자 패널</span>
+              <span style={{ fontSize: 14.5, color: '#2B2A26' }}>관리자 모드</span>
             </div>
             <span className="ms" style={{ fontSize: 20, color: '#c2bba8' }}>chevron_right</span>
           </div>
