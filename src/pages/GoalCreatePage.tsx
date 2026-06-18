@@ -56,7 +56,17 @@ export default function GoalCreatePage() {
       return
     }
 
-    navigate('/plan/ai-loading', { state: { planId: data.id } })
+    navigate('/plan/ai-loading', {
+      state: {
+        planId: data.id,
+        title: goalText.trim(),
+        startDate,
+        endDate,
+        dailyMinutes: timeToMinutes[selectedTime],
+        unit: selectedUnit,
+        totalAmount: parseInt(totalAmount),
+      },
+    })
   }
 
   return (

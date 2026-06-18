@@ -1,21 +1,63 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
+
+interface PlanState {
+  planId?: string
+  title?: string
+  startDate?: string
+  endDate?: string
+  dailyMinutes?: number
+  unit?: string
+  totalAmount?: number
+}
 
 export default function AiLoadingPage() {
   const navigate = useNavigate()
   const { state } = useLocation()
-  const planId = (state as { planId?: string })?.planId
+  const { planId, title, startDate, endDate, dailyMinutes, unit, totalAmount } = (state ?? {}) as PlanState
+  const called = useRef(false)
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      if (planId) {
+    if (!planId || called.current) return
+    called.current = true
+
+    const run = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+
+        await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-plan`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            },
+            body: JSON.stringify({
+              plan_id: planId,
+              title,
+              start_date: startDate,
+              end_date: endDate,
+              daily_minutes: dailyMinutes,
+              unit,
+              total_amount: totalAmount,
+            }),
+          }
+        )
+      } catch (_) {
+        // 실패해도 계획 페이지로 이동
+      } finally {
         navigate(`/plan/${planId}`, { replace: true })
-      } else {
-        navigate('/plan', { replace: true })
       }
-    }, 2800)
-    return () => clearTimeout(t)
-  }, [navigate, planId])
+    }
+
+    // 최소 2.8초 로딩 화면 보여주기
+    const minWait = new Promise(res => setTimeout(res, 2800))
+    Promise.all([run(), minWait]).then(() => {})
+  }, [planId])
 
   return (
     <div className="fade-in" style={{
