@@ -60,12 +60,15 @@ Deno.serve(async (req) => {
 
     if (solarKey) {
       try {
+        const solarController = new AbortController()
+        const solarTimeout = setTimeout(() => solarController.abort(), 4000)
         const res = await fetch('https://api.upstage.ai/v1/solar/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${solarKey}`,
             'Content-Type': 'application/json',
           },
+          signal: solarController.signal,
           body: JSON.stringify({
             model: 'solar-mini',
             messages: [
@@ -98,6 +101,7 @@ Deno.serve(async (req) => {
           }),
         })
 
+        clearTimeout(solarTimeout)
         if (res.ok) {
           const json = await res.json()
           const content = json.choices?.[0]?.message?.content ?? ''

@@ -22,18 +22,18 @@ export default function AiLoadingPage() {
     if (!planId || called.current) return
     called.current = true
 
-    const run = async () => {
+    const callApi = async () => {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 6000)
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        const token = session?.access_token
-
         await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-plan`,
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
+              'Authorization': `Bearer ${session?.access_token}`,
               'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
             },
             body: JSON.stringify({
@@ -45,18 +45,21 @@ export default function AiLoadingPage() {
               unit,
               total_amount: totalAmount,
             }),
+            signal: controller.signal,
           }
         )
       } catch (_) {
-        // 실패해도 계획 페이지로 이동
+        // 타임아웃 또는 오류 — fallback으로 수학적 분배 실행
       } finally {
-        navigate(`/plan/${planId}`, { replace: true })
+        clearTimeout(timeoutId)
       }
     }
 
-    // 최소 2.8초 로딩 화면 보여주기
-    const minWait = new Promise(res => setTimeout(res, 2800))
-    Promise.all([run(), minWait]).then(() => {})
+    const minWait = new Promise<void>(res => setTimeout(res, 2800))
+
+    Promise.all([callApi(), minWait]).then(() => {
+      navigate(`/plan/${planId}`, { replace: true })
+    })
   }, [planId])
 
   return (
