@@ -13,6 +13,7 @@ export default function GoalCreatePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const today = new Date().toISOString().split('T')[0]
+  const maxDate = (() => { const d = new Date(); d.setMonth(d.getMonth() + 6); return d.toISOString().split('T')[0] })()
 
   const [goalText, setGoalText] = useState('')
   const [startDate, setStartDate] = useState(today)
@@ -123,6 +124,7 @@ export default function GoalCreatePage() {
                 type="date"
                 value={endDate}
                 min={startDate}
+                max={maxDate}
                 onChange={e => setEndDate(e.target.value)}
                 style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font)', fontSize: 14, color: endDate ? '#2B2A26' : '#b3ad9d', fontWeight: endDate ? 600 : 400, width: '100%', cursor: 'pointer' }}
               />
@@ -188,7 +190,7 @@ export default function GoalCreatePage() {
               placeholder="0"
               style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font)', fontSize: 19, fontWeight: 800, color: '#2B2A26', width: 80 }}
             />
-            <span style={{ fontSize: 14, color: '#847f6f' }}>{selectedUnit}</span>
+            {selectedUnit !== '기타' && <span style={{ fontSize: 14, color: '#847f6f' }}>{selectedUnit}</span>}
           </div>
         </div>
 

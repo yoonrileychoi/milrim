@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 
 type Plan = {
   id: string
@@ -27,10 +28,12 @@ type PlanDay = {
 export default function PlanDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
+  const { user } = useAuth()
   const [plan, setPlan] = useState<Plan | null>(null)
   const [days, setDays] = useState<PlanDay[]>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [generating, setGenerating] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -57,6 +60,27 @@ export default function PlanDetailPage() {
     } else {
       setDeleting(false)
     }
+  }
+
+  const handleGenerateDays = async () => {
+    if (!plan || !user) return
+    setGenerating(true)
+    const start = new Date(plan.start_date)
+    const end = new Date(plan.end_date)
+    const totalDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1
+    const rows = []
+    let remaining = plan.total_amount
+    for (let i = 0; i < totalDays; i++) {
+      const daysLeft = totalDays - i
+      const target = i === totalDays - 1 ? remaining : Math.ceil(remaining / daysLeft)
+      const d = new Date(start)
+      d.setDate(d.getDate() + i)
+      rows.push({ plan_id: plan.id, user_id: user.id, date: d.toISOString().split('T')[0], target_amount: target, min_amount: Math.max(1, Math.ceil(target * 0.2)) })
+      remaining -= target
+    }
+    const { data } = await supabase.from('milrim_plan_days').insert(rows).select()
+    if (data) setDays(data as PlanDay[])
+    setGenerating(false)
   }
 
   const fmtHeader = (d: string) => {
@@ -132,9 +156,14 @@ export default function PlanDetailPage() {
             padding: '28px 20px', textAlign: 'center',
           }}>
             <span className="ms" style={{ fontSize: 36, color: '#DDE8CE' }}>calendar_month</span>
-            <div style={{ fontSize: 14, color: '#9a9482', marginTop: 10, lineHeight: 1.7 }}>
-              아직 일별 계획이 없어요.<br />AI 계획 생성 기능이 곧 추가될 예정이에요!
-            </div>
+            <div style={{ fontSize: 14, color: '#9a9482', marginTop: 10 }}>아직 일별 계획이 없어요</div>
+            <button
+              onClick={handleGenerateDays}
+              disabled={generating}
+              style={{ marginTop: 14, border: 'none', background: '#2E5A3A', color: '#fff', fontSize: 14, fontWeight: 700, padding: '12px 24px', borderRadius: 12, fontFamily: 'var(--font)', cursor: generating ? 'not-allowed' : 'pointer', opacity: generating ? 0.7 : 1 }}
+            >
+              {generating ? '생성 중...' : '계획 생성하기'}
+            </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -167,7 +196,7 @@ export default function PlanDetailPage() {
 
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           <button
-            onClick={() => navigate('/plan/ai-loading', { state: { planId: plan.id } })}
+            onClick={() => navigate('/plan/ai-loading', { state: { planId: plan.id, title: plan.title, startDate: plan.start_date, endDate: plan.end_date, dailyMinutes: plan.daily_minutes, unit: plan.unit, totalAmount: plan.total_amount } })}
             style={{ flex: 1, border: '1px solid #2E5A3A', background: '#fff', color: '#2E5A3A', fontSize: 14, fontWeight: 700, padding: 14, borderRadius: 14, fontFamily: 'var(--font)', cursor: 'pointer' }}
           >
             계획 수정
