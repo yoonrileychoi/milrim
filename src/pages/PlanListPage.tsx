@@ -44,7 +44,7 @@ export default function PlanListPage() {
   }
 
   return (
-    <Layout title="나의 플랜">
+    <Layout title="나의 학습계획">
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #DDE8CE', borderTopColor: '#2E5A3A', animation: 'dspin 0.8s linear infinite' }} />

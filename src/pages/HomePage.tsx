@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import { useAuth } from '../contexts/AuthContext'
 
 const mockGoals = [
   {
@@ -44,10 +45,12 @@ function CircleProgress({ pct, size = 84 }: { pct: number; size?: number }) {
 
 export default function HomePage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
   const doneCount = mockTasks.filter(t => t.done).length
 
   return (
-    <Layout title="오늘도 한 걸음씩">
+    <Layout title={`안녕하세요, ${displayName}님`}>
       {/* Goal cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
         {mockGoals.map(g => (
