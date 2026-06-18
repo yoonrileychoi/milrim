@@ -77,6 +77,7 @@ export default function AiLoadingPage() {
 
       // Edge Function 실패 시 브라우저에서 직접 수학적 분배
       if (!success) {
+        await supabase.from('milrim_plan_days').delete().eq('plan_id', planId)
         const rows = generateDays(startDate, endDate, totalAmount, planId, userId)
         await supabase.from('milrim_plan_days').insert(rows)
       }
