@@ -62,7 +62,7 @@ export default function HomePage() {
                   <div style={{ fontSize: 38, fontWeight: 800, lineHeight: 1 }}>
                     {g.todayDone}<span style={{ fontSize: 18 }}>{g.unit}</span>
                   </div>
-                  <div style={{ fontSize: 12.5, opacity: 0.8, marginBottom: 5 }}>오늘 남은 양 {g.todayRemain}쪽</div>
+                  <div style={{ fontSize: 12.5, opacity: 0.8, marginBottom: 5 }}>오늘 · 약 {g.todayRemain}분</div>
                 </div>
                 <div style={{ fontSize: 12.5, opacity: 0.78, marginTop: 7 }}>전체 {g.total}{g.unit} 중 {g.totalDone}{g.unit} 완료</div>
               </div>
@@ -74,11 +74,11 @@ export default function HomePage() {
                 <div style={{ fontSize: 15.5, fontWeight: 700, marginTop: 3 }}>{g.minGoal}{g.unit}</div>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11.5, opacity: 0.78 }}>오늘 학습 시간</div>
-                <div style={{ fontSize: 15.5, fontWeight: 700, marginTop: 3 }}>{g.dailyTime}분</div>
+                <div style={{ fontSize: 11.5, opacity: 0.78 }}>누적 학습 시간</div>
+                <div style={{ fontSize: 15.5, fontWeight: 700, marginTop: 3 }}>{g.dailyTime}일</div>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11.5, opacity: 0.78 }}>재계획 횟수</div>
+                <div style={{ fontSize: 11.5, opacity: 0.78 }}>이어간 횟수</div>
                 <div style={{ fontSize: 15.5, fontWeight: 700, marginTop: 3 }}>{g.replanCount}회</div>
               </div>
             </div>
@@ -90,7 +90,7 @@ export default function HomePage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginTop: 16 }}>
         <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 22, padding: '22px 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <div style={{ fontSize: 16.5, fontWeight: 700, color: '#2B2A26' }}>오늘의 계획</div>
+            <div style={{ fontSize: 16.5, fontWeight: 700, color: '#2B2A26' }}>오늘 할 일</div>
             <div style={{ fontSize: 12.5, color: '#2E5A3A', fontWeight: 700, background: '#F0F5E6', padding: '5px 12px', borderRadius: 20 }}>
               {doneCount} / {mockTasks.length} 완료
             </div>

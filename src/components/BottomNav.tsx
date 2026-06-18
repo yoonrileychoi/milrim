@@ -21,7 +21,7 @@ export default function BottomNav() {
         {({ isActive }) => (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, cursor: 'pointer', color: isActive ? '#2E5A3A' : '#9a9482' }}>
             <span className="ms" style={{ fontSize: 23 }}>event_note</span>
-            <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 400, fontFamily: 'var(--font)' }}>플랜</span>
+            <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 400, fontFamily: 'var(--font)' }}>계획 세우기</span>
           </div>
         )}
       </NavLink>
@@ -33,7 +33,7 @@ export default function BottomNav() {
         }}>
           <span className="ms" style={{ fontSize: 28 }}>autorenew</span>
         </div>
-        <span style={{ fontSize: 11, color: '#2E5A3A', fontWeight: 800, marginTop: 4, fontFamily: 'var(--font)' }}>AI 재계획</span>
+        <span style={{ fontSize: 11, color: '#2E5A3A', fontWeight: 800, marginTop: 4, fontFamily: 'var(--font)' }}>AI 계획 수정</span>
       </div>
       <NavLink to="/stats" style={{ flex: 1, textDecoration: 'none' }}>
         {({ isActive }) => (
