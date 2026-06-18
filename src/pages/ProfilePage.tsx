@@ -1,9 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 
 export default function ProfilePage() {
   const navigate = useNavigate()
-  const [nickname, setNickname] = useState('사용자')
+  const { user } = useAuth()
+  const [nickname, setNickname] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      setNickname(user.user_metadata?.name || user.user_metadata?.full_name || '')
+    }
+  }, [user])
+
+  const handleSave = async () => {
+    if (!nickname.trim()) return
+    setSaving(true)
+    const { error } = await supabase.auth.updateUser({ data: { name: nickname.trim() } })
+    setSaving(false)
+    if (!error) {
+      setSaved(true)
+      setTimeout(() => navigate('/my'), 800)
+    }
+  }
 
   return (
     <div className="fade-in" style={{ position: 'fixed', inset: 0, overflowY: 'auto', background: '#F4F2EA' }}>
@@ -33,20 +55,24 @@ export default function ProfilePage() {
             <input
               value={nickname}
               onChange={e => setNickname(e.target.value)}
+              placeholder="닉네임을 입력하세요"
               style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font)', fontSize: 15, fontWeight: 600, color: '#2B2A26', width: '100%' }}
             />
           </div>
         </div>
         <div style={{ marginTop: 18 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2A26', marginBottom: 8 }}>이메일</div>
-          <div style={{ background: '#F4F0E4', border: '1px solid #EFEADD', borderRadius: 14, padding: '14px 16px', fontSize: 15, color: '#b3ad9d' }}>user@milrim.app</div>
+          <div style={{ background: '#F4F0E4', border: '1px solid #EFEADD', borderRadius: 14, padding: '14px 16px', fontSize: 15, color: '#b3ad9d' }}>
+            {user?.email ?? '-'}
+          </div>
         </div>
 
         <button
-          onClick={() => navigate('/my')}
-          style={{ width: '100%', border: 'none', background: '#2E5A3A', color: '#fff', fontSize: 16, fontWeight: 700, padding: 16, borderRadius: 15, fontFamily: 'var(--font)', cursor: 'pointer', marginTop: 28 }}
+          onClick={handleSave}
+          disabled={saving || saved}
+          style={{ width: '100%', border: 'none', background: saved ? '#6E9E4E' : saving ? '#6E9E4E' : '#2E5A3A', color: '#fff', fontSize: 16, fontWeight: 700, padding: 16, borderRadius: 15, fontFamily: 'var(--font)', cursor: (saving || saved) ? 'not-allowed' : 'pointer', marginTop: 28 }}
         >
-          저장하기
+          {saved ? '저장됐어요!' : saving ? '저장 중...' : '저장하기'}
         </button>
       </div>
     </div>
