@@ -10,15 +10,16 @@ interface TimerState {
   target?: number
   unit?: string
   dailyMinutes?: number
+  initialSeconds?: number
 }
 
 export default function TimerPage() {
   const navigate = useNavigate()
   const { state } = useLocation()
   const { user } = useAuth()
-  const { planId, planDayId, title, target, unit, dailyMinutes } = (state ?? {}) as TimerState
+  const { planId, planDayId, title, target, unit, dailyMinutes, initialSeconds } = (state ?? {}) as TimerState
 
-  const [seconds, setSeconds] = useState(0)
+  const [seconds, setSeconds] = useState(initialSeconds ?? 0)
   const [running, setRunning] = useState(true)
   const [showEndModal, setShowEndModal] = useState(false)
   const [saving, setSaving] = useState(false)
