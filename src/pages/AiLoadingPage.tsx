@@ -1,12 +1,21 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 export default function AiLoadingPage() {
   const navigate = useNavigate()
+  const { state } = useLocation()
+  const planId = (state as { planId?: string })?.planId
+
   useEffect(() => {
-    const t = setTimeout(() => navigate('/plan/result', { replace: true }), 2800)
+    const t = setTimeout(() => {
+      if (planId) {
+        navigate(`/plan/${planId}`, { replace: true })
+      } else {
+        navigate('/plan', { replace: true })
+      }
+    }, 2800)
     return () => clearTimeout(t)
-  }, [navigate])
+  }, [navigate, planId])
 
   return (
     <div className="fade-in" style={{
