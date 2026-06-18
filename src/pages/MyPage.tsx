@@ -19,8 +19,11 @@ export default function MyPage() {
       <div className="fade-in">
         {/* profile card */}
         <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: 22, display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#DDE8CE', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2E5A3A', flexShrink: 0 }}>
-            <span className="ms" style={{ fontSize: 28 }}>eco</span>
+          <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#DDE8CE', flexShrink: 0, overflow: 'hidden' }}>
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="30" cy="25" r="11" fill="#5A8A6A" />
+              <ellipse cx="30" cy="52" rx="18" ry="14" fill="#5A8A6A" />
+            </svg>
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: '#2B2A26' }}>{displayName}</div>

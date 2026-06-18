@@ -19,17 +19,11 @@ export default function ProfilePage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 10 }}>
-          <div style={{ position: 'relative' }}>
-            <div style={{ width: 92, height: 92, borderRadius: '50%', background: '#DDE8CE', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2E5A3A' }}>
-              <span className="ms" style={{ fontSize: 42 }}>eco</span>
-            </div>
-            <div style={{
-              position: 'absolute', bottom: 0, right: 0,
-              width: 30, height: 30, borderRadius: '50%', background: '#2E5A3A', color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #F4F2EA', cursor: 'pointer',
-            }}>
-              <span className="ms" style={{ fontSize: 16, fontVariationSettings: "'wght' 400" }}>photo_camera</span>
-            </div>
+          <div style={{ width: 92, height: 92, borderRadius: '50%', background: '#DDE8CE', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <svg width="92" height="92" viewBox="0 0 92 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="46" cy="38" r="16" fill="#5A8A6A" />
+              <ellipse cx="46" cy="78" rx="26" ry="20" fill="#5A8A6A" />
+            </svg>
           </div>
         </div>
 
