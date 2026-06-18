@@ -110,16 +110,24 @@ export default function HomePage() {
           <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E2DCCB', borderTopColor: '#2E5A3A', animation: 'dspin 0.9s linear infinite' }} />
         </div>
       ) : goals.length === 0 ? (
-        <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 22, padding: '40px 24px', textAlign: 'center' }}>
-          <span className="ms" style={{ fontSize: 44, color: '#C9C7BC' }}>eco</span>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#2B2A26', marginTop: 14 }}>아직 진행 중인 플랜이 없어요</div>
-          <div style={{ fontSize: 13.5, color: '#9a9482', marginTop: 8 }}>플랜 탭에서 새 목표를 만들어봐요</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+          <div
+            onClick={() => navigate('/plan/new')}
+            style={{
+              border: '1.5px dashed #D8CFB8', borderRadius: 20, padding: 22,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              gap: 10, color: '#9a9482', cursor: 'pointer', minHeight: 150,
+            }}
+          >
+            <span className="ms" style={{ fontSize: 30 }}>add_circle</span>
+            <div style={{ fontSize: 13.5, fontWeight: 600 }}>새 계획 추가</div>
+          </div>
         </div>
       ) : (
         <>
-          {/* Goal cards */}
+          {/* Goal cards — max 4, most recent first */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-            {goals.map((g, i) => {
+            {goals.slice(0, 4).map((g, i) => {
               const [c1, c2] = CARD_COLORS[i % CARD_COLORS.length]
               return (
                 <div key={g.id} onClick={() => navigate(`/plan/${g.id}`)} style={{
