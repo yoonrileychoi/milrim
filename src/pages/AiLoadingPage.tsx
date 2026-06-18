@@ -12,6 +12,31 @@ interface PlanState {
   totalAmount?: number
 }
 
+function generateDays(startDate: string, endDate: string, totalAmount: number, planId: string, userId: string) {
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  const totalDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1
+  const rows = []
+  let remaining = totalAmount
+
+  for (let i = 0; i < totalDays; i++) {
+    const daysLeft = totalDays - i
+    const target = i === totalDays - 1 ? remaining : Math.ceil(remaining / daysLeft)
+    const minAmount = Math.max(1, Math.ceil(target * 0.2))
+    const d = new Date(start)
+    d.setDate(d.getDate() + i)
+    rows.push({
+      plan_id: planId,
+      user_id: userId,
+      date: d.toISOString().split('T')[0],
+      target_amount: target,
+      min_amount: minAmount,
+    })
+    remaining -= target
+  }
+  return rows
+}
+
 export default function AiLoadingPage() {
   const navigate = useNavigate()
   const { state } = useLocation()
@@ -19,15 +44,19 @@ export default function AiLoadingPage() {
   const called = useRef(false)
 
   useEffect(() => {
-    if (!planId || called.current) return
+    if (!planId || !startDate || !endDate || !totalAmount || called.current) return
     called.current = true
 
-    const callApi = async () => {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 6000)
+    const run = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      const userId = session?.user?.id
+      if (!userId) return
+
+      let success = false
+
+      // Edge Function 시도 (Solar AI)
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        await fetch(
+        const res = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-plan`,
           {
             method: 'POST',
@@ -37,27 +66,24 @@ export default function AiLoadingPage() {
               'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
             },
             body: JSON.stringify({
-              plan_id: planId,
-              title,
-              start_date: startDate,
-              end_date: endDate,
-              daily_minutes: dailyMinutes,
-              unit,
-              total_amount: totalAmount,
+              plan_id: planId, title,
+              start_date: startDate, end_date: endDate,
+              daily_minutes: dailyMinutes, unit, total_amount: totalAmount,
             }),
-            signal: controller.signal,
           }
         )
-      } catch (_) {
-        // 타임아웃 또는 오류 — fallback으로 수학적 분배 실행
-      } finally {
-        clearTimeout(timeoutId)
+        if (res.ok) success = true
+      } catch (_) {}
+
+      // Edge Function 실패 시 브라우저에서 직접 수학적 분배
+      if (!success) {
+        const rows = generateDays(startDate, endDate, totalAmount, planId, userId)
+        await supabase.from('milrim_plan_days').insert(rows)
       }
     }
 
     const minWait = new Promise<void>(res => setTimeout(res, 2800))
-
-    Promise.all([callApi(), minWait]).then(() => {
+    Promise.all([run(), minWait]).then(() => {
       navigate(`/plan/${planId}`, { replace: true })
     })
   }, [planId])
