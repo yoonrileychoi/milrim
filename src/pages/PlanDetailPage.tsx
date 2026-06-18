@@ -179,6 +179,7 @@ export default function PlanDetailPage() {
             {days.map(day => {
               const isToday = day.date === today
               const isDone = day.status === 'complete'
+              const isReplanned = isToday && day.status === 'pending' && (plan.replan_count ?? 0) > 0
               return (
                 <div key={day.id} style={{
                   display: 'flex', alignItems: 'center', gap: 12, background: '#fff',
@@ -196,7 +197,8 @@ export default function PlanDetailPage() {
                     {day.target_amount}{plan.unit}
                   </div>
                   {isDone && <span className="ms" style={{ fontSize: 18, color: '#9CC36B' }}>check_circle</span>}
-                  {isToday && !isDone && <div style={{ fontSize: 11, color: '#9a9482' }}>진행중</div>}
+                  {isReplanned && <div style={{ fontSize: 11, color: '#2E5A3A', fontWeight: 700 }}>계획 조정하기</div>}
+                  {isToday && !isDone && !isReplanned && <div style={{ fontSize: 11, color: '#9a9482' }}>진행중</div>}
                 </div>
               )
             })}
