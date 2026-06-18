@@ -1,153 +1,150 @@
-import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 
-const mockTasks = [
-  { id: 1, subject: '수학', content: '미적분 3단원 개념 정리', done: true, time: 40 },
-  { id: 2, subject: '영어', content: '독해 지문 3개 풀기', done: false, time: 30 },
-  { id: 3, subject: '국어', content: '문학 작품 분석 노트 작성', done: false, time: 50 },
+const mockGoals = [
+  {
+    id: '1', name: '데이터베이스 시스템공학 A+', progress: 84, unit: 'p',
+    todayDone: 95, todayRemain: 50, total: 500, totalDone: 420,
+    minGoal: 6, dailyTime: 12, replanCount: 3,
+    color1: '#2E5A3A', color2: '#3C6B45',
+  },
+  {
+    id: '2', name: '토익 900', progress: 52, unit: '개',
+    todayDone: 2, todayRemain: 70, total: 50, totalDone: 26,
+    minGoal: 1, dailyTime: 20, replanCount: 1,
+    color1: '#3A4F2C', color2: '#4E6B3A',
+  },
 ]
 
-const TIMER_SEC = 25 * 60
+const mockTasks = [
+  { id: 1, goalName: '데이터베이스 시스템공학 A+', content: '2장 SQL 기본 30p', done: true },
+  { id: 2, goalName: '데이터베이스 시스템공학 A+', content: '연습문제 20문제', done: true },
+  { id: 3, goalName: '데이터베이스 시스템공학 A+', content: '뷰와 트리거 정리 15p', done: false },
+  { id: 4, goalName: '토익 900', content: 'LC 파트3 듣기 2개', done: false },
+]
+
+function CircleProgress({ pct, size = 84 }: { pct: number; size?: number }) {
+  const r = size * 0.405
+  const circ = 2 * Math.PI * r
+  const offset = circ * (1 - pct / 100)
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth={9} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#C2E098" strokeWidth={9}
+          strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`} />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontSize: 21, fontWeight: 800 }}>{pct}<span style={{ fontSize: 11 }}>%</span></div>
+      </div>
+    </div>
+  )
+}
 
 export default function HomePage() {
-  const [tasks, setTasks] = useState(mockTasks)
-  const [timerRunning, setTimerRunning] = useState(false)
-  const [seconds, setSeconds] = useState(TIMER_SEC)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  const today = new Date()
-  const dateStr = today.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })
-
-  useEffect(() => {
-    if (timerRunning) {
-      intervalRef.current = setInterval(() => {
-        setSeconds(s => {
-          if (s <= 1) { setTimerRunning(false); clearInterval(intervalRef.current!); return TIMER_SEC }
-          return s - 1
-        })
-      }, 1000)
-    } else {
-      clearInterval(intervalRef.current!)
-    }
-    return () => clearInterval(intervalRef.current!)
-  }, [timerRunning])
-
-  const mins = String(Math.floor(seconds / 60)).padStart(2, '0')
-  const secs = String(seconds % 60).padStart(2, '0')
-  const doneCount = tasks.filter(t => t.done).length
-  const progress = Math.round((doneCount / tasks.length) * 100)
-
-  const subjectColors: Record<string, string> = {
-    '수학': 'var(--color-pigment)', '영어': '#2E8B57', '국어': '#8B4513',
-    '과학': '#2E6B8B', '사회': '#6B2E8B',
-  }
+  const navigate = useNavigate()
+  const doneCount = mockTasks.filter(t => t.done).length
 
   return (
-    <Layout>
-      <div style={{ paddingTop: 24 }}>
-        <div style={{ marginBottom: 24 }}>
-          <p style={{ fontSize: 13, color: 'var(--color-ink-45)', margin: '0 0 4px', fontFamily: 'var(--font-mono)' }}>{dateStr}</p>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', margin: 0, letterSpacing: '-0.02em' }}>
-            오늘도 한 걸음씩 🌿
-          </h1>
-        </div>
-
-        <div style={{ background: 'var(--color-pigment)', borderRadius: 16, padding: '20px', marginBottom: 16, color: 'white' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-            <div>
-              <p style={{ fontSize: 12, opacity: 0.8, margin: '0 0 4px' }}>오늘의 달성률</p>
-              <p style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-mono)', margin: 0 }}>{progress}%</p>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <p style={{ fontSize: 12, opacity: 0.8, margin: '0 0 4px' }}>완료 / 전체</p>
-              <p style={{ fontSize: 20, fontWeight: 600, fontFamily: 'var(--font-mono)', margin: 0 }}>{doneCount}/{tasks.length}</p>
-            </div>
-          </div>
-          <div style={{ background: 'rgba(255,255,255,0.25)', borderRadius: 4, height: 6, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${progress}%`, background: 'var(--color-accent)', borderRadius: 4, transition: 'width 0.6s ease' }} />
-          </div>
-        </div>
-
-        <div style={{ background: 'white', borderRadius: 16, padding: '20px', marginBottom: 16, boxShadow: 'var(--shadow-card)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <p style={{ fontSize: 12, color: 'var(--color-ink-45)', margin: '0 0 4px' }}>뽀모도로 타이머</p>
-            <p style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--color-ink)', margin: 0 }}>
-              {mins}:{secs}
-            </p>
-          </div>
-          <button
-            onClick={() => { if (!timerRunning) setSeconds(TIMER_SEC); setTimerRunning(r => !r) }}
-            style={{
-              width: 52, height: 52, borderRadius: '50%', border: 'none',
-              background: timerRunning ? 'var(--color-ink)' : 'var(--color-pigment)',
-              color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-            {timerRunning
-              ? <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
-              : <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21" /></svg>
-            }
-          </button>
-        </div>
-
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 16, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>오늘의 계획</h2>
-            <span style={{ fontSize: 12, color: 'var(--color-ink-45)', fontFamily: 'var(--font-mono)' }}>
-              {tasks.reduce((acc, t) => acc + t.time, 0)}분
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {tasks.map(task => (
-              <div
-                key={task.id}
-                onClick={() => setTasks(prev => prev.map(t => t.id === task.id ? { ...t, done: !t.done } : t))}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  background: 'white', borderRadius: 12, padding: '14px 16px',
-                  boxShadow: 'var(--shadow-soft)', cursor: 'pointer',
-                  opacity: task.done ? 0.6 : 1, transition: 'all 0.2s',
-                }}>
-                <div style={{
-                  width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                  background: task.done ? 'var(--color-pigment)' : 'transparent',
-                  border: task.done ? 'none' : '1.5px solid var(--color-wash)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'all 0.2s',
-                }}>
-                  {task.done && <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2"><polyline points="2,6 5,9 10,3" /></svg>}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 2 }}>
-                    <span style={{
-                      fontSize: 11, fontWeight: 600,
-                      color: subjectColors[task.subject] || 'var(--color-pigment)',
-                      background: `color-mix(in srgb, ${subjectColors[task.subject] || 'var(--color-pigment)'} 12%, transparent)`,
-                      borderRadius: 4, padding: '1px 6px',
-                    }}>{task.subject}</span>
+    <Layout title="오늘도 한 걸음씩">
+      {/* Goal cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+        {mockGoals.map(g => (
+          <div key={g.id} style={{
+            background: `linear-gradient(150deg, ${g.color1} 0%, ${g.color2} 100%)`,
+            borderRadius: 22, padding: '22px 24px', color: '#fff',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontSize: 13, opacity: 0.82, fontWeight: 500 }}>{g.name}</div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 8 }}>
+                  <div style={{ fontSize: 38, fontWeight: 800, lineHeight: 1 }}>
+                    {g.todayDone}<span style={{ fontSize: 18 }}>{g.unit}</span>
                   </div>
-                  <p style={{ fontSize: 14, color: 'var(--color-ink)', margin: 0, textDecoration: task.done ? 'line-through' : 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {task.content}
-                  </p>
+                  <div style={{ fontSize: 12.5, opacity: 0.8, marginBottom: 5 }}>오늘 남은 양 {g.todayRemain}쪽</div>
                 </div>
-                <span style={{ fontSize: 12, color: 'var(--color-ink-45)', fontFamily: 'var(--font-mono)', flexShrink: 0 }}>
-                  {task.time}분
-                </span>
+                <div style={{ fontSize: 12.5, opacity: 0.78, marginTop: 7 }}>전체 {g.total}{g.unit} 중 {g.totalDone}{g.unit} 완료</div>
+              </div>
+              <CircleProgress pct={g.progress} />
+            </div>
+            <div style={{ display: 'flex', marginTop: 16, paddingTop: 15, borderTop: '1px solid rgba(255,255,255,0.16)' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11.5, opacity: 0.78 }}>최소 달성</div>
+                <div style={{ fontSize: 15.5, fontWeight: 700, marginTop: 3 }}>{g.minGoal}{g.unit}</div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11.5, opacity: 0.78 }}>오늘 학습 시간</div>
+                <div style={{ fontSize: 15.5, fontWeight: 700, marginTop: 3 }}>{g.dailyTime}분</div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11.5, opacity: 0.78 }}>재계획 횟수</div>
+                <div style={{ fontSize: 15.5, fontWeight: 700, marginTop: 3 }}>{g.replanCount}회</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Today's tasks + encouragement */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginTop: 16 }}>
+        <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 22, padding: '22px 24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ fontSize: 16.5, fontWeight: 700, color: '#2B2A26' }}>오늘의 계획</div>
+            <div style={{ fontSize: 12.5, color: '#2E5A3A', fontWeight: 700, background: '#F0F5E6', padding: '5px 12px', borderRadius: 20 }}>
+              {doneCount} / {mockTasks.length} 완료
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {mockTasks.map(task => (
+              <div key={task.id} style={{
+                display: 'flex', alignItems: 'center', gap: 13, padding: '13px 15px',
+                border: `1px solid ${task.done ? '#EFEADD' : '#DDE8CE'}`,
+                borderRadius: 15,
+                background: task.done ? '#fff' : '#FCFBF7',
+              }}>
+                <div style={{
+                  width: 24, height: 24, borderRadius: 8, flexShrink: 0,
+                  background: task.done ? '#2E5A3A' : 'transparent',
+                  border: task.done ? 'none' : '2px solid #C9C7BC',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+                }}>
+                  {task.done && <span className="ms" style={{ fontSize: 16, fontVariationSettings: "'wght' 400" }}>check</span>}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11.5, color: '#a8a292', fontWeight: 600 }}>{task.goalName}</div>
+                  <div style={{
+                    fontSize: 14.5, fontWeight: 600,
+                    color: task.done ? '#b3ad9d' : '#2B2A26',
+                    textDecoration: task.done ? 'line-through' : 'none',
+                  }}>{task.content}</div>
+                </div>
+                {!task.done && (
+                  <button
+                    onClick={() => navigate('/timer')}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 5, border: 'none',
+                      background: '#2E5A3A', color: '#fff', fontSize: 12.5, fontWeight: 700,
+                      padding: '9px 13px', borderRadius: 10, fontFamily: 'var(--font)', cursor: 'pointer', flexShrink: 0,
+                    }}
+                  >
+                    <span className="ms" style={{ fontSize: 16, fontVariationSettings: "'wght' 400" }}>play_arrow</span>
+                    시작
+                  </button>
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        <button style={{
-          width: '100%', padding: '14px', borderRadius: 12,
-          border: '1.5px dashed var(--color-accent)', background: 'color-mix(in srgb, var(--color-accent) 8%, transparent)',
-          color: 'var(--color-ink)', fontFamily: 'var(--font-sans)', fontSize: 14, fontWeight: 500,
-          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2">
-            <path d="M12 2a10 10 0 0 1 0 20" /><path d="M12 2a10 10 0 0 0 0 20" /><path d="M12 6v6l4 2" />
-          </svg>
-          밀렸나요? AI가 재계획할게요
-        </button>
+        <div style={{ flex: 1, background: '#F0F5E6', borderRadius: 22, padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2E5A3A' }}>
+            <span className="ms" style={{ fontSize: 28 }}>eco</span>
+          </div>
+          <div style={{ fontSize: 16, color: '#3E5C42', lineHeight: 1.65, fontWeight: 600 }}>
+            포기하지만 않으면 괜찮아요. 밀린 계획은 AI가 다시 함께 정리해드릴게요.
+          </div>
+        </div>
       </div>
     </Layout>
   )

@@ -1,88 +1,80 @@
-@import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 
-@theme {
-  --color-paper: #F4F6FB;
-  --color-ink: #14213D;
-  --color-pigment: #1D4E89;
-  --color-accent: #E8A33D;
-  --color-wash: #DCE6F2;
-  --color-ink-70: color-mix(in srgb, #14213D 70%, transparent);
-  --color-ink-45: color-mix(in srgb, #14213D 45%, transparent);
-  --color-pigment-d: #163C6B;
-  --color-paper-d: #E9ECF4;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  --font-serif: 'Noto Serif KR', serif;
-  --font-sans: 'Pretendard', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-
-  --radius-sm: 6px;
-  --radius-md: 14px;
-
-  --shadow-card: 0 2px 12px color-mix(in srgb, #14213D 8%, transparent);
-  --shadow-soft: 0 1px 4px color-mix(in srgb, #14213D 6%, transparent);
+:root {
+  --bg: #F4F2EA;
+  --white: #fff;
+  --green-dark: #2E5A3A;
+  --green-mid: #6E9E4E;
+  --green-light: #9CC36B;
+  --green-pale: #C2E098;
+  --green-tint: #F0F5E6;
+  --green-tint2: #DDE8CE;
+  --ink: #2B2A26;
+  --ink-70: #6B6757;
+  --ink-50: #847f6f;
+  --ink-40: #9a9482;
+  --ink-30: #b3ad9d;
+  --border: #ECE7DA;
+  --border2: #E2DCCB;
+  --border3: #EFEADD;
+  --paper: #FAF6EE;
+  --red: #B5524A;
+  --red-bg: #FBEDEB;
+  --font: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
+.ms {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'wght' 300;
+  user-select: none;
+}
 
 html {
-  font-family: var(--font-sans);
-  background: var(--color-paper);
-  color: var(--color-ink);
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  margin: 0;
   min-height: 100dvh;
-  background: var(--color-paper);
+  background: var(--bg);
 }
 
 #root {
   min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
 }
 
-.app-shell {
-  width: 100%;
-  max-width: 430px;
-  margin: 0 auto;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  background: var(--color-paper);
-  box-shadow: 0 0 0 1px var(--color-wash);
+/* scrollbar */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { background: #DDD7C6; border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+@keyframes dfade {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes dpop {
+  from { transform: scale(0.97); }
+  to { transform: none; }
+}
+@keyframes dspin {
+  to { transform: rotate(360deg); }
 }
 
-.hl {
-  background: linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) 0%);
-  background-size: 0% 40%;
-  background-repeat: no-repeat;
-  background-position: left 90%;
-  padding-bottom: 2px;
-  transition: background-size 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.hl.lit {
-  background-size: 100% 40%;
-}
-
-.reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-}
-.reveal.visible {
-  opacity: 1;
-  transform: none;
-}
-
-.page-content {
-  flex: 1;
-  padding: 0 20px;
-  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  overflow-y: auto;
-}
+.fade-in { animation: dfade 0.4s ease; }
+.pop-in { animation: dpop 0.3s ease; }
