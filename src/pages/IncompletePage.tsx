@@ -14,7 +14,7 @@ export default function IncompletePage() {
           오늘 다 끝내지<br />못해도 괜찮아요
         </div>
         <div style={{ fontSize: 14.5, color: '#847f6f', textAlign: 'center', lineHeight: 1.65, marginTop: 14 }}>
-          오늘 목표일에 끝낼 수 있도록<br />계획을 다시 정리해드릴게요.
+          제가 목표일에 끝낼 수 있도록<br />도와드릴게요.
         </div>
         <div style={{ background: '#fff', border: '1px solid #EFEADD', borderRadius: 16, padding: '16px 18px', marginTop: 26, width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

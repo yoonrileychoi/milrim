@@ -80,7 +80,7 @@ export default function GoalCreatePage() {
 
         {/* 학습 목표명 */}
         <div style={{ marginBottom: 22 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>학습 목표명을 입력하세요</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>어떤 목표인가요?</div>
           <div style={{
             background: '#fff', border: '1px solid #E2DCCB', borderRadius: 14,
             padding: '14px 16px',
@@ -89,14 +89,14 @@ export default function GoalCreatePage() {
               value={goalText}
               onChange={e => setGoalText(e.target.value)}
               style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font)', fontSize: 15, fontWeight: 600, color: '#2B2A26', width: '100%' }}
-              placeholder="예: 데이터베이스 시스템공학 A+, 토익 900"
+              placeholder="예: 중간고사 미문학개론 A+, 토익 900, 기사 자격증"
             />
           </div>
         </div>
 
         {/* 목표일 */}
         <div style={{ marginBottom: 22 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>언제까지 목표인가요?</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>언제까지 끝낼까요?</div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <div style={{ flex: 1, background: '#fff', border: '1px solid #E2DCCB', borderRadius: 14, padding: '14px 16px' }}>
               <input
@@ -119,13 +119,13 @@ export default function GoalCreatePage() {
             </div>
           </div>
           {dayCount > 0 && (
-            <div style={{ fontSize: 11.5, color: '#2E5A3A', marginTop: 6, fontWeight: 500 }}>총 {dayCount}일</div>
+            <div style={{ fontSize: 11.5, color: '#2E5A3A', marginTop: 6, fontWeight: 500 }}>총 {dayCount}일 동안 학습해요</div>
           )}
         </div>
 
         {/* 하루 학습 가능 시간 */}
         <div style={{ marginBottom: 22 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>하루 학습 가능 시간은?</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>하루 공부 가능 시간은?</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {timeOptions.map(t => (
               <div
@@ -165,7 +165,7 @@ export default function GoalCreatePage() {
 
         {/* 전체 학습량 */}
         <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>전체 학습량을 입력하세요</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>전체 학습량은 얼마인가요?</div>
           <div style={{
             background: '#fff', border: '1px solid #E2DCCB', borderRadius: 14,
             padding: '14px 16px', display: 'flex', alignItems: 'baseline', gap: 6,
