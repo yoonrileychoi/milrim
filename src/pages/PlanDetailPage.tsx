@@ -177,28 +177,40 @@ export default function PlanDetailPage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {days.map(day => {
+              const isPast = day.date < today
               const isToday = day.date === today
+              const isFuture = day.date > today
               const isDone = day.status === 'complete'
-              const isReplanned = isToday && day.status === 'incomplete'
+              const isIncomplete = day.status === 'incomplete'
+              const isActive = isToday && !isDone && !isIncomplete
+              // 과거 또는 incomplete = 흑백 처리
+              const isMuted = isPast || isIncomplete
               return (
                 <div key={day.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 12, background: '#fff',
-                  border: isToday ? '1.5px solid #2E5A3A' : '1px solid #EFEADD',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  background: isMuted ? '#F7F5EF' : '#fff',
+                  border: isActive ? '1.5px solid #2E5A3A' : '1px solid #EFEADD',
                   borderRadius: 14, padding: '12px 14px',
                 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: isDone ? '#9CC36B' : isToday ? '#2E5A3A' : '#c2bba8', width: 44, flexShrink: 0 }}>
+                  <div style={{
+                    fontSize: 12, fontWeight: 700,
+                    color: isMuted ? '#c2bba8' : isDone ? '#9CC36B' : '#2E5A3A',
+                    width: 44, flexShrink: 0,
+                  }}>
                     {fmtShort(day.date)}
                   </div>
                   <div style={{
-                    flex: 1, fontSize: 13.5, color: isDone ? '#b3ad9d' : '#2B2A26',
-                    fontWeight: isToday ? 600 : 500,
-                    textDecoration: isDone ? 'line-through' : 'none',
+                    flex: 1, fontSize: 13.5,
+                    color: isMuted ? '#c2bba8' : '#2B2A26',
+                    fontWeight: isActive ? 600 : 500,
+                    textDecoration: isDone || isIncomplete ? 'line-through' : 'none',
                   }}>
                     {day.target_amount}{plan.unit}
                   </div>
-                  {isDone && <span className="ms" style={{ fontSize: 18, color: '#9CC36B' }}>check_circle</span>}
-                  {isReplanned && <div style={{ fontSize: 11, color: '#2E5A3A', fontWeight: 700 }}>계획 조정하기</div>}
-                  {isToday && !isDone && !isReplanned && <div style={{ fontSize: 11, color: '#9a9482' }}>진행중</div>}
+                  {isDone && <span className="ms" style={{ fontSize: 18, color: isMuted ? '#c2bba8' : '#9CC36B' }}>check_circle</span>}
+                  {isIncomplete && <div style={{ fontSize: 11, color: '#b3ad9d', fontWeight: 600 }}>계획 조정 완료</div>}
+                  {isActive && <div style={{ fontSize: 11, color: '#9a9482' }}>진행중</div>}
+                  {isFuture && isDone && <span className="ms" style={{ fontSize: 18, color: '#9CC36B' }}>check_circle</span>}
                 </div>
               )
             })}
