@@ -1,8 +1,18 @@
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function MyPage() {
   const navigate = useNavigate()
+  const { user, signOut } = useAuth()
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/login', { replace: true })
+  }
+
+  const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
+  const email = user?.email || 'user@milrim.app'
 
   return (
     <Layout title="마이페이지">
@@ -13,8 +23,8 @@ export default function MyPage() {
             <span className="ms" style={{ fontSize: 28 }}>eco</span>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#2B2A26' }}>사용자</div>
-            <div style={{ fontSize: 13, color: '#9a9482', marginTop: 2 }}>user@milrim.app</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#2B2A26' }}>{displayName}</div>
+            <div style={{ fontSize: 13, color: '#9a9482', marginTop: 2 }}>{email}</div>
           </div>
           <div
             onClick={() => navigate('/my/profile')}
@@ -38,7 +48,7 @@ export default function MyPage() {
           </div>
           <div style={{ height: 1, background: '#F0EADC', margin: '0 18px' }} />
           <div
-            onClick={() => navigate('/login')}
+            onClick={handleSignOut}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', cursor: 'pointer' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
