@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 
 export default function ProfilePage() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const [nickname, setNickname] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -22,6 +22,7 @@ export default function ProfilePage() {
     const { error } = await supabase.auth.updateUser({ data: { name: nickname.trim() } })
     setSaving(false)
     if (!error) {
+      await refreshUser()
       setSaved(true)
       setTimeout(() => navigate('/my'), 800)
     }
