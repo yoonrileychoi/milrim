@@ -179,7 +179,7 @@ export default function PlanDetailPage() {
             {days.map(day => {
               const isToday = day.date === today
               const isDone = day.status === 'complete'
-              const isReplanned = isToday && day.status === 'pending' && (plan.replan_count ?? 0) > 0
+              const isReplanned = isToday && day.status === 'incomplete'
               return (
                 <div key={day.id} style={{
                   display: 'flex', alignItems: 'center', gap: 12, background: '#fff',

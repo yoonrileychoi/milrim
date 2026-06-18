@@ -39,57 +39,33 @@ export default function ReplanPage() {
       const remainingAmount = Math.max(0, plan.total_amount - completedAmount)
       if (remainingAmount <= 0) return
 
-      // 오늘부터 종료일까지 재분배
-      const start = new Date(today)
+      if (tomorrowStr > plan.end_date) return
+
+      // 내일부터 종료일까지 재분배
+      const start = new Date(tomorrowStr)
       const end = new Date(plan.end_date)
       const totalDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1
-      const rows: Array<{ date: string; target_amount: number; min_amount: number }> = []
-      let remaining = remainingAmount
+      const base = Math.floor(remainingAmount / totalDays)
+      const extra = remainingAmount % totalDays
+      const rows = []
 
       for (let i = 0; i < totalDays; i++) {
-        const daysLeft = totalDays - i
-        const target = i === totalDays - 1 ? remaining : Math.ceil(remaining / daysLeft)
+        const target = base + (i < extra ? 1 : 0)
         const d = new Date(start)
         d.setDate(d.getDate() + i)
         rows.push({
+          plan_id: planId, user_id: user.id,
           date: d.toISOString().split('T')[0],
-          target_amount: target,
-          min_amount: Math.max(1, Math.ceil(target * 0.2)),
-        })
-        remaining -= target
-      }
-
-      const todayRow = rows[0]
-      const futureRows = rows.slice(1)
-      const todayRecord = allDays.find(d => d.date === today)
-
-      // 내일 이후 삭제
-      await supabase.from('milrim_plan_days').delete().eq('plan_id', planId).gte('date', tomorrowStr)
-
-      // 오늘 plan_day 업데이트 또는 생성
-      if (todayRecord) {
-        await supabase.from('milrim_plan_days').update({
-          target_amount: todayRow.target_amount,
-          min_amount: todayRow.min_amount,
-          status: 'pending',
-          actual_amount: null,
+          target_amount: Math.max(1, target),
+          min_amount: Math.max(1, Math.ceil(Math.max(1, target) * 0.2)),
           study_seconds: 0,
-        }).eq('id', todayRecord.id)
-      } else {
-        await supabase.from('milrim_plan_days').insert({
-          plan_id: planId, user_id: user.id, date: today,
-          target_amount: todayRow.target_amount, min_amount: todayRow.min_amount, study_seconds: 0,
         })
       }
 
-      // 내일 이후 삽입
-      if (futureRows.length > 0) {
-        await supabase.from('milrim_plan_days').insert(
-          futureRows.map(r => ({
-            plan_id: planId, user_id: user.id, date: r.date,
-            target_amount: r.target_amount, min_amount: r.min_amount, study_seconds: 0,
-          }))
-        )
+      // 내일 이후 삭제 후 재삽입
+      await supabase.from('milrim_plan_days').delete().eq('plan_id', planId).gte('date', tomorrowStr)
+      if (rows.length > 0) {
+        await supabase.from('milrim_plan_days').insert(rows)
       }
 
       await supabase.from('milrim_plans').update({ replan_count: (plan.replan_count ?? 0) + 1 }).eq('id', planId)
