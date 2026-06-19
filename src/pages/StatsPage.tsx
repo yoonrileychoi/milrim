@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import Layout from '../components/Layout'
-import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
 export default function StatsPage() {
-  const { user } = useAuth()
-  const [totalSeconds, setTotalSeconds] = useState(0)
+const [totalSeconds, setTotalSeconds] = useState(0)
   const [studyDays, setStudyDays] = useState(0)
   const [replanCount, setReplanCount] = useState(0)
   const [loading, setLoading] = useState(true)
