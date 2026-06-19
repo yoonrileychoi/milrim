@@ -115,9 +115,9 @@ export default function HomePage() {
         <>
           {/* Goal cards header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2A26' }}>오늘의 계획</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>오늘의 계획</div>
             {goals.length >= 4 && (
-              <div onClick={() => navigate('/plan')} style={{ fontSize: 12.5, color: '#2E5A3A', fontWeight: 700, cursor: 'pointer' }}>더 보기...</div>
+              <div onClick={() => navigate('/plan')} style={{ fontSize: 12.5, color: 'var(--primary)', fontWeight: 700, cursor: 'pointer' }}>더 보기...</div>
             )}
           </div>
           {/* Goal cards — always 4 slots, filler with "새 계획 추가" */}
@@ -164,9 +164,9 @@ export default function HomePage() {
                 key={`add-${i}`}
                 onClick={() => navigate('/plan/new')}
                 style={{
-                  border: '1.5px dashed #D8CFB8', borderRadius: 20, padding: 22,
+                  border: '1.5px dashed var(--border2)', borderRadius: 20, padding: 22,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  gap: 10, color: '#9a9482', cursor: 'pointer', minHeight: 150,
+                  gap: 10, color: 'var(--ink-40)', cursor: 'pointer', minHeight: 150,
                 }}
               >
                 <span className="ms" style={{ fontSize: 30 }}>add_circle</span>
@@ -177,15 +177,15 @@ export default function HomePage() {
 
           {/* Today's tasks + encouragement */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginTop: 16 }}>
-            <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 22, padding: '22px 24px' }}>
+            <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 22, padding: '22px 24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <div style={{ fontSize: 16.5, fontWeight: 700, color: '#2B2A26' }}>오늘 할 일</div>
-                <div style={{ fontSize: 12.5, color: '#2E5A3A', fontWeight: 700, background: '#F0F5E6', padding: '5px 12px', borderRadius: 20 }}>
+                <div style={{ fontSize: 16.5, fontWeight: 700, color: 'var(--ink)' }}>오늘 할 일</div>
+                <div style={{ fontSize: 12.5, color: 'var(--primary)', fontWeight: 700, background: 'var(--primary-tint)', padding: '5px 12px', borderRadius: 20 }}>
                   {todayTasks.filter(g => g.todayDay?.status === 'complete').length} / {todayTasks.length} 완료
                 </div>
               </div>
               {todayTasks.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px 0', fontSize: 13.5, color: '#b3ad9d' }}>
+                <div style={{ textAlign: 'center', padding: '20px 0', fontSize: 13.5, color: 'var(--ink-30)' }}>
                   오늘 일정이 없어요
                 </div>
               ) : (
@@ -195,23 +195,23 @@ export default function HomePage() {
                     return (
                       <div key={g.id} style={{
                         display: 'flex', alignItems: 'center', gap: 13, padding: '13px 15px',
-                        border: `1px solid ${done ? '#EFEADD' : '#DDE8CE'}`,
+                        border: `1px solid ${done ? 'var(--border3)' : 'var(--primary-tint2)'}`,
                         borderRadius: 15,
-                        background: done ? '#fff' : '#FCFBF7',
+                        background: done ? 'var(--white)' : 'var(--paper)',
                       }}>
                         <div style={{
                           width: 24, height: 24, borderRadius: 8, flexShrink: 0,
-                          background: done ? '#2E5A3A' : 'transparent',
-                          border: done ? 'none' : '2px solid #C9C7BC',
+                          background: done ? 'var(--primary)' : 'transparent',
+                          border: done ? 'none' : '2px solid var(--border2)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
                         }}>
                           {done && <span className="ms" style={{ fontSize: 16, fontVariationSettings: "'wght' 400" }}>check</span>}
                         </div>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 11.5, color: '#a8a292', fontWeight: 600 }}>{g.title}</div>
+                          <div style={{ fontSize: 11.5, color: 'var(--ink-40)', fontWeight: 600 }}>{g.title}</div>
                           <div style={{
                             fontSize: 14.5, fontWeight: 600,
-                            color: done ? '#b3ad9d' : '#2B2A26',
+                            color: done ? 'var(--ink-30)' : 'var(--ink)',
                             textDecoration: done ? 'line-through' : 'none',
                           }}>
                             오늘 목표: {g.todayDay?.target_amount}{g.unit}
@@ -222,7 +222,7 @@ export default function HomePage() {
                             onClick={() => navigate('/timer', { state: { planId: g.id, planDayId: g.todayDay?.id, title: g.title, target: g.todayDay?.target_amount, unit: g.unit, dailyMinutes: g.daily_minutes } })}
                             style={{
                               display: 'flex', alignItems: 'center', gap: 5, border: 'none',
-                              background: '#2E5A3A', color: '#fff', fontSize: 12.5, fontWeight: 700,
+                              background: 'var(--primary)', color: '#fff', fontSize: 12.5, fontWeight: 700,
                               padding: '9px 13px', borderRadius: 10, fontFamily: 'var(--font)', cursor: 'pointer', flexShrink: 0,
                             }}
                           >
@@ -237,11 +237,11 @@ export default function HomePage() {
               )}
             </div>
 
-            <div style={{ flex: 1, background: '#F0F5E6', borderRadius: 22, padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2E5A3A' }}>
+            <div style={{ flex: 1, background: 'var(--primary-tint)', borderRadius: 22, padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
                 <span className="ms" style={{ fontSize: 28 }}>eco</span>
               </div>
-              <div style={{ fontSize: 16, color: '#3E5C42', lineHeight: 1.65, fontWeight: 600 }}>
+              <div style={{ fontSize: 16, color: 'var(--primary)', lineHeight: 1.65, fontWeight: 600 }}>
                 포기하지만 않으면 괜찮아요. 밀린 계획은 AI가 다시 함께 정리해드릴게요.
               </div>
             </div>
