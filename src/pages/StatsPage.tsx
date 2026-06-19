@@ -31,9 +31,12 @@ const [totalSeconds, setTotalSeconds] = useState(0)
 
   const totalHours = Math.floor(totalSeconds / 3600)
   const totalMins = Math.floor((totalSeconds % 3600) / 60)
+  const totalSecs = totalSeconds % 60
   const timeDisplay = totalHours > 0
-    ? `${totalHours}시간 ${totalMins > 0 ? totalMins + '분' : ''}`
-    : `${totalMins}분`
+    ? `${totalHours}시간 ${totalMins > 0 ? totalMins + '분 ' : ''}${totalSecs}초`
+    : totalMins > 0
+      ? `${totalMins}분 ${totalSecs}초`
+      : `${totalSecs}초`
 
   return (
     <Layout title="나의 숲">
