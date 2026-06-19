@@ -60,35 +60,23 @@ export default function Sidebar() {
 
       <div style={{ flex: 1 }} />
 
-      <button
-        onClick={() => navigate('/replan')}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          border: 'none', background: 'var(--primary)', color: '#fff',
-          fontSize: 14, fontWeight: 700, padding: 13, borderRadius: 13,
-          fontFamily: 'var(--font)', cursor: 'pointer', marginBottom: 10,
-        }}
-      >
-        <span className="ms" style={{ fontSize: 20 }}>autorenew</span>
-        계획 재생성
-      </button>
-
       {/* Theme controls */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, marginBottom: 10, position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, marginBottom: 12, position: 'relative' }}>
         {/* Palette */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={e => { e.stopPropagation(); setShowPalette(p => !p) }}
             title="컬러 테마"
             style={{
-              width: 32, height: 32, border: 'none', borderRadius: 9,
+              width: 64, height: 64, borderRadius: 16,
+              border: showPalette ? '3px solid var(--primary)' : '3px solid var(--border2)',
               background: showPalette ? 'var(--primary-tint)' : 'var(--paper)',
-              color: 'var(--ink-50)', cursor: 'pointer',
+              color: showPalette ? 'var(--primary)' : 'var(--ink-50)', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontFamily: 'inherit',
             }}
           >
-            <span className="ms" style={{ fontSize: 18 }}>palette</span>
+            <span className="ms" style={{ fontSize: 36 }}>palette</span>
           </button>
           {showPalette && (
             <div
@@ -126,16 +114,30 @@ export default function Sidebar() {
           onClick={() => setTheme(isDark ? 'green' : 'dark')}
           title={isDark ? '라이트 모드' : '다크 모드'}
           style={{
-            width: 32, height: 32, border: 'none', borderRadius: 9,
+            width: 64, height: 64, borderRadius: 16,
+            border: isDark ? '3px solid var(--primary)' : '3px solid var(--border2)',
             background: isDark ? 'var(--primary-tint)' : 'var(--paper)',
-            color: 'var(--ink-50)', cursor: 'pointer',
+            color: isDark ? 'var(--primary)' : 'var(--ink-50)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: 'inherit',
           }}
         >
-          <span className="ms" style={{ fontSize: 18 }}>{isDark ? 'light_mode' : 'dark_mode'}</span>
+          <span className="ms" style={{ fontSize: 36 }}>{isDark ? 'light_mode' : 'dark_mode'}</span>
         </button>
       </div>
+
+      <button
+        onClick={() => navigate('/replan')}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          border: 'none', background: 'var(--primary)', color: '#fff',
+          fontSize: 14, fontWeight: 700, padding: 13, borderRadius: 13,
+          fontFamily: 'var(--font)', cursor: 'pointer', marginBottom: 10,
+        }}
+      >
+        <span className="ms" style={{ fontSize: 20 }}>autorenew</span>
+        계획 재생성
+      </button>
 
       <div
         onClick={() => navigate('/my')}
