@@ -62,16 +62,15 @@ export default function ReplanPage() {
         })
       }
 
-      // 내일 이후 삭제 후 재삽입
+      // 내일 이후 삭제 후 재삽입 + replan_count 업데이트 병렬 처리
       await supabase.from('milrim_plan_days').delete().eq('plan_id', planId).gte('date', tomorrowStr)
-      if (rows.length > 0) {
-        await supabase.from('milrim_plan_days').insert(rows)
-      }
-
-      await supabase.from('milrim_plans').update({ replan_count: (plan.replan_count ?? 0) + 1 }).eq('id', planId)
+      await Promise.all([
+        rows.length > 0 ? supabase.from('milrim_plan_days').insert(rows) : Promise.resolve(),
+        supabase.from('milrim_plans').update({ replan_count: (plan.replan_count ?? 0) + 1 }).eq('id', planId),
+      ])
     }
 
-    const minWait = new Promise<void>(res => setTimeout(res, 2800))
+    const minWait = new Promise<void>(res => setTimeout(res, 1500))
     Promise.all([run(), minWait]).then(() => {
       navigate(`/plan/${planId}`, { replace: true })
     })
