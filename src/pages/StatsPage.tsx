@@ -5,8 +5,6 @@ import { supabase } from '../lib/supabase'
 
 export default function StatsPage() {
   const { user } = useAuth()
-  const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
-
   const [totalSeconds, setTotalSeconds] = useState(0)
   const [studyDays, setStudyDays] = useState(0)
   const [replanCount, setReplanCount] = useState(0)

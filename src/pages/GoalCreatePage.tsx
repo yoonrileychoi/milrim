@@ -80,7 +80,7 @@ export default function GoalCreatePage() {
         title: goalText.trim(),
         startDate,
         endDate,
-        dailyMinutes: timeToMinutes[selectedTime],
+        dailyMinutes: 60,
         unit: selectedUnit,
         totalAmount: parseInt(totalAmount),
       },
