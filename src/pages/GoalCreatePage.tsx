@@ -127,7 +127,7 @@ export default function GoalCreatePage() {
               style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font)', fontSize: 15, fontWeight: 600, color: '#2B2A26', width: '100%' }}
             />
           </div>
-          <div style={{ fontSize: 11.5, color: '#b3ad9d', marginTop: 6 }}>예: 중간고사 미문학개론 A+, 토익 900, 기사 자격증</div>
+          <div style={{ fontSize: 11.5, color: '#b3ad9d', marginTop: 6 }}>예: 영어 단어 외우기, 한국사 강의 완강, 수학 문제집 1권 끝내기</div>
         </div>
 
         {/* 목표일 */}
