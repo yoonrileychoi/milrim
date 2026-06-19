@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#F4F2EA"/>
+  <circle cx="1080" cy="110" r="210" fill="#EDE8D8" opacity="0.55"/>
+  <circle cx="110"  cy="530" r="150" fill="#E8E2D2" opacity="0.45"/>
+  <!-- Logo bars (3× scale, bottom aligned at y=306) -->
+  <rect x="486" y="234" width="36" height="72"  rx="10" fill="#9CC36B"/>
+  <rect x="534" y="192" width="36" height="114" rx="10" fill="#6E9E4E"/>
+  <rect x="582" y="150" width="36" height="156" rx="10" fill="#2E5A3A"/>
+  <rect x="630" y="201" width="36" height="105" rx="10" fill="#6E9E4E"/>
+  <rect x="678" y="240" width="36" height="66"  rx="10" fill="#9CC36B"/>
+  <!-- Brand -->
+  <text x="600" y="408"
+    font-family="-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif"
+    font-size="88" font-weight="800" fill="#2B2A26" text-anchor="middle">밀림</text>
+  <!-- Tagline -->
+  <text x="600" y="464"
+    font-family="-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif"
+    font-size="30" font-weight="500" fill="#847f6f" text-anchor="middle">밀려도 괜찮은 AI 학습 플래너</text>
+  <!-- URL hint -->
+  <text x="600" y="524"
+    font-family="-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif"
+    font-size="20" font-weight="400" fill="#b3ad9d" text-anchor="middle">milrim.app</text>
+</svg>
