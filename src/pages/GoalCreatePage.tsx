@@ -3,14 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
-const timeOptions = ['30분', '1시간', '2시간', '3시간', '4시간 이상']
 const unitOptions = ['페이지', '문제', '강의', '시간']
-const timeToMinutes: Record<string, number> = {
-  '30분': 30, '1시간': 60, '2시간': 120, '3시간': 180, '4시간 이상': 240,
-}
-const minutesToTime: Record<number, string> = {
-  30: '30분', 60: '1시간', 120: '2시간', 180: '3시간', 240: '4시간 이상',
-}
 
 interface EditState {
   planId?: string
@@ -35,7 +28,6 @@ export default function GoalCreatePage() {
   const [goalText, setGoalText] = useState(edit.title || '')
   const [startDate, setStartDate] = useState(edit.startDate || today)
   const [endDate, setEndDate] = useState(edit.endDate || '')
-  const [selectedTime, setSelectedTime] = useState(minutesToTime[edit.dailyMinutes ?? 0] || '2시간')
   const [selectedUnit, setSelectedUnit] = useState(edit.unit || '페이지')
   const [totalAmount, setTotalAmount] = useState(edit.totalAmount?.toString() || '')
   const [loading, setLoading] = useState(false)
@@ -58,7 +50,7 @@ export default function GoalCreatePage() {
       title: goalText.trim(),
       start_date: startDate,
       end_date: endDate,
-      daily_minutes: timeToMinutes[selectedTime],
+      daily_minutes: 60,
       unit: selectedUnit,
       total_amount: parseInt(totalAmount),
     }
@@ -158,26 +150,6 @@ export default function GoalCreatePage() {
           {dayCount > 0 && (
             <div style={{ fontSize: 11.5, color: '#2E5A3A', marginTop: 6, fontWeight: 500 }}>총 {dayCount}일 동안 학습해요</div>
           )}
-        </div>
-
-        {/* 하루 학습 가능 시간 */}
-        <div style={{ marginBottom: 22 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>하루 공부 가능 시간은?</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {timeOptions.map(t => (
-              <div
-                key={t}
-                onClick={() => setSelectedTime(t)}
-                style={{
-                  padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
-                  border: selectedTime === t ? '1.5px solid #2E5A3A' : '1px solid #E2DCCB',
-                  background: selectedTime === t ? '#F0F5E6' : '#fff',
-                  fontSize: 13.5, color: selectedTime === t ? '#2E5A3A' : '#847f6f',
-                  fontWeight: selectedTime === t ? 700 : 400,
-                }}
-              >{t}</div>
-            ))}
-          </div>
         </div>
 
         {/* 학습 단위 */}

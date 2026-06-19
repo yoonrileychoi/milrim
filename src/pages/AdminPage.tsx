@@ -10,6 +10,8 @@ const users = [
 
 export default function AdminPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const filtered = users.filter(u => u.email.toLowerCase().includes(search.toLowerCase()))
 
   return (
     <Layout title="관리자 모드">
@@ -39,7 +41,12 @@ export default function AdminPage() {
             <div style={{ fontSize: 16, fontWeight: 700, color: '#2B2A26' }}>사용자 관리</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FAF6EE', border: '1px solid #E7E1D3', borderRadius: 10, padding: '8px 12px', width: 220 }}>
               <span className="ms" style={{ fontSize: 18, color: '#b3ad9d' }}>search</span>
-              <span style={{ fontSize: 13, color: '#b3ad9d' }}>이메일로 검색</span>
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="이메일로 검색"
+                style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font)', fontSize: 13, color: '#2B2A26', width: '100%' }}
+              />
             </div>
           </div>
           <div style={{ minWidth: 560 }}>
@@ -50,11 +57,11 @@ export default function AdminPage() {
             }}>
               <div>사용자</div><div>가입일</div><div style={{ textAlign: 'center' }}>플랜</div><div style={{ textAlign: 'center' }}>재계획</div><div style={{ textAlign: 'right' }}>관리</div>
             </div>
-            {users.map((u, i) => (
+            {filtered.map((u, i) => (
               <div key={u.email} style={{
                 display: 'grid', gridTemplateColumns: '2.4fr 1.4fr 0.8fr 0.8fr 0.6fr',
                 alignItems: 'center', padding: '14px 22px',
-                borderBottom: i < users.length - 1 ? '1px solid #F4EFE3' : 'none',
+                borderBottom: i < filtered.length - 1 ? '1px solid #F4EFE3' : 'none',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: u.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: u.iconColor, flexShrink: 0 }}>

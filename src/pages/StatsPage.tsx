@@ -14,8 +14,13 @@ export default function StatsPage() {
 
   useEffect(() => {
     const fetchStats = async () => {
+      const today = new Date().toISOString().split('T')[0]
+      const todayStart = `${today}T00:00:00`
+      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1)
+      const tomorrowStart = `${tomorrow.toISOString().split('T')[0]}T00:00:00`
+
       const [{ data: sessions }, { data: completedDays }, { data: plans }] = await Promise.all([
-        supabase.from('milrim_study_sessions').select('duration_seconds'),
+        supabase.from('milrim_study_sessions').select('duration_seconds').gte('started_at', todayStart).lt('started_at', tomorrowStart),
         supabase.from('milrim_plan_days').select('date').eq('status', 'complete'),
         supabase.from('milrim_plans').select('replan_count'),
       ])
@@ -45,7 +50,7 @@ export default function StatsPage() {
           <>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
               <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: '22px 24px' }}>
-                <div style={{ fontSize: 13, color: '#9a9482' }}>누적 학습 시간</div>
+                <div style={{ fontSize: 13, color: '#9a9482' }}>오늘 누적 학습 시간</div>
                 <div style={{ fontSize: 28, fontWeight: 800, color: '#2B2A26', marginTop: 7 }}>
                   {totalSeconds === 0 ? <span style={{ fontSize: 18 }}>아직 없어요</span> : timeDisplay}
                 </div>
@@ -58,7 +63,7 @@ export default function StatsPage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginTop: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, marginTop: 16 }}>
               <div style={{
                 background: 'linear-gradient(150deg, #2E5A3A 0%, #3C6B45 100%)',
                 borderRadius: 22, padding: 30, color: '#fff',
@@ -80,16 +85,6 @@ export default function StatsPage() {
               </div>
             </div>
 
-            <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 22, padding: '22px 24px', marginTop: 16 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2A26', marginBottom: 8 }}>
-                {replanCount > 0 ? `${replanCount}번의 재계획 끝에 여기까지 왔어요` : '이제 막 시작했어요'}
-              </div>
-              <div style={{ fontSize: 13, color: '#847f6f', lineHeight: 1.65 }}>
-                {replanCount > 0
-                  ? `밀릴 때마다 AI가 목표일에 맞춰 계획을 다시 세웠고, 그때마다 ${displayName}님은 다시 시작했어요. 그 꾸준함이 지금의 숲을 만들었습니다.`
-                  : `첫 목표를 만들고 꾸준히 학습을 이어가면 ${displayName}님만의 숲이 만들어져요.`}
-              </div>
-            </div>
           </>
         )}
       </div>
