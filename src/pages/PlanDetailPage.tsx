@@ -52,7 +52,6 @@ export default function PlanDetailPage() {
   }, [id, navigate])
 
   const handleDelete = async () => {
-    if (!window.confirm('플랜을 삭제하시겠어요?\n모든 학습 기록도 함께 삭제됩니다.')) return
     setDeleting(true)
     const { error } = await supabase.from('milrim_plans').delete().eq('id', id)
     if (!error) {
