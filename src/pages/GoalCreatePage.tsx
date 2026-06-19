@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
 const timeOptions = ['30분', '1시간', '2시간', '3시간', '4시간 이상']
-const unitOptions = ['페이지', '문제', '강의', '시간', '기타']
+const unitOptions = ['페이지', '문제', '강의', '시간']
 const timeToMinutes: Record<string, number> = {
   '30분': 30, '1시간': 60, '2시간': 120, '3시간': 180, '4시간 이상': 240,
 }

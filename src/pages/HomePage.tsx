@@ -50,6 +50,8 @@ function CircleProgress({ pct, size = 84 }: { pct: number; size?: number }) {
   )
 }
 
+const dispUnit = (unit: string) => unit === '강의' ? '강' : unit
+
 const CARD_COLORS = [
   ['#2E5A3A', '#3C6B45'],
   ['#3A4F2C', '#4E6B3A'],
@@ -132,21 +134,17 @@ export default function HomePage() {
                       <div style={{ fontSize: 13, opacity: 0.82, fontWeight: 500 }}>{g.title}</div>
                       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 8 }}>
                         <div style={{ fontSize: 38, fontWeight: 800, lineHeight: 1 }}>
-                          {g.todayDay?.target_amount ?? '-'}<span style={{ fontSize: 18 }}>{g.unit}</span>
+                          {g.todayDay?.target_amount ?? '-'}<span style={{ fontSize: 18 }}>{dispUnit(g.unit)}</span>
                         </div>
-                        <div style={{ fontSize: 12.5, opacity: 0.8, marginBottom: 5 }}>오늘 목표</div>
-                      </div>
-                      <div style={{ fontSize: 12.5, opacity: 0.78, marginTop: 7 }}>
-                        전체 {g.total_amount}{g.unit} 중 {g.completedAmount}{g.unit} 완료
                       </div>
                     </div>
                     <CircleProgress pct={g.progress} />
                   </div>
                   <div style={{ display: 'flex', marginTop: 16, paddingTop: 15, borderTop: '1px solid rgba(255,255,255,0.16)' }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 11.5, opacity: 0.78 }}>최소 달성</div>
+                      <div style={{ fontSize: 11.5, opacity: 0.78 }}>최소달성목표</div>
                       <div style={{ fontSize: 15.5, fontWeight: 700, marginTop: 3 }}>
-                        {g.todayDay?.min_amount ?? '-'}{g.unit}
+                        {g.todayDay?.min_amount ?? '-'}{dispUnit(g.unit)}
                       </div>
                     </div>
                     <div style={{ flex: 1 }}>

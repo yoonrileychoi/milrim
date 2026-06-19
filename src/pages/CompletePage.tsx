@@ -39,7 +39,7 @@ export default function CompletePage() {
           {target != null && (
             <div style={{ background: '#fff', border: '1px solid #EFEADD', borderRadius: 16, padding: '14px 20px', textAlign: 'center' }}>
               <div style={{ fontSize: 11.5, color: '#9a9482' }}>달성량</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#2E5A3A', marginTop: 3 }}>{target}{unit}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#2E5A3A', marginTop: 3 }}>{target}{unit === '강의' ? '강' : unit}</div>
             </div>
           )}
         </div>

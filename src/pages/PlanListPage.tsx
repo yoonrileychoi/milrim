@@ -93,7 +93,7 @@ export default function PlanListPage() {
             }}
           >
             <span className="ms" style={{ fontSize: 30 }}>add_circle</span>
-            <div style={{ fontSize: 13.5, fontWeight: 600 }}>새 목표 추가</div>
+            <div style={{ fontSize: 13.5, fontWeight: 600 }}>새 계획 추가</div>
           </div>
         </div>
       )}

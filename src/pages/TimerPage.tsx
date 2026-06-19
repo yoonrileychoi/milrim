@@ -147,7 +147,7 @@ export default function TimerPage() {
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: 'none', background: saving ? '#6E9E4E' : '#2E5A3A', color: '#fff', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, fontFamily: 'var(--font)', cursor: saving ? 'not-allowed' : 'pointer' }}
               >
                 <span className="ms" style={{ fontSize: 18, fontVariationSettings: "'wght' 400" }}>check</span>
-                {saving ? '저장 중...' : '계획을 모두 마쳤어요'}
+                {saving ? '저장 중...' : '계획을 완료했어요'}
               </button>
               <button
                 onClick={handleIncomplete}
