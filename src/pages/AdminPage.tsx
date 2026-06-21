@@ -14,6 +14,7 @@ const ICONS = [
 interface AdminUser {
   id: string
   nickname: string
+  email: string
   joinDate: string
   plans: number
   replans: number
@@ -45,8 +46,8 @@ export default function AdminPage() {
     setLoading(true)
     try {
       const { data: profiles } = await supabase
-        .from('milrim_profiles')
-        .select('id, nickname, created_at')
+        .from('milrim_profiles_with_email')
+        .select('id, nickname, email, created_at')
         .order('created_at', { ascending: false })
 
       const { data: plans } = await supabase
@@ -67,6 +68,7 @@ export default function AdminPage() {
         return {
           id: p.id,
           nickname: p.nickname,
+          email: p.email || '',
           joinDate,
           plans: userPlans.length,
           replans: userPlans.reduce((sum, pl) => sum + (pl.replan_count || 0), 0),
@@ -182,7 +184,10 @@ export default function AdminPage() {
                     <div style={{ width: 36, height: 36, borderRadius: '50%', background: iconSet.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconSet.color, flexShrink: 0 }}>
                       <span className="ms" style={{ fontSize: 18 }}>{iconSet.icon}</span>
                     </div>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: '#2B2A26' }}>{u.nickname}</span>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#2B2A26' }}>{u.nickname}</div>
+                      <div style={{ fontSize: 11, color: '#9a9482', marginTop: 1 }}>{u.email}</div>
+                    </div>
                   </div>
                   <div style={{ fontSize: 13, color: '#847f6f' }}>{u.joinDate}</div>
                   <div style={{ fontSize: 14, color: '#2B2A26', textAlign: 'center' }}>{u.plans}</div>
