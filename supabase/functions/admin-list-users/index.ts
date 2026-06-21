@@ -35,21 +35,25 @@ Deno.serve(async (req) => {
     const { data: profilesData } = await adminClient
       .from('milrim_profiles')
       .select('id, nickname, created_at')
-      .order('created_at', { ascending: false })
 
     const { data: authData, error: listError } = await adminClient.auth.admin.listUsers()
     if (listError) {
       return new Response(JSON.stringify({ error: listError.message }), { status: 400, headers: corsHeaders })
     }
 
-    const emailMap = new Map(authData.users.map(u => [u.id, u.email ?? '']))
+    const profileMap = new Map((profilesData || []).map(p => [p.id, p]))
 
-    const users = (profilesData || []).map(p => ({
-      id: p.id,
-      nickname: p.nickname,
-      email: emailMap.get(p.id) || '',
-      created_at: p.created_at,
-    }))
+    const users = authData.users
+      .map(u => {
+        const profile = profileMap.get(u.id)
+        return {
+          id: u.id,
+          nickname: profile?.nickname || u.user_metadata?.name || '사용자',
+          email: u.email || '',
+          created_at: u.created_at,
+        }
+      })
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
     return new Response(JSON.stringify({ users }), { status: 200, headers: corsHeaders })
   } catch (e) {
