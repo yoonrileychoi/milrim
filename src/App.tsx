@@ -39,6 +39,29 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: '#F4F2EA',
+      }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: '50%',
+          border: '3px solid #DDE8CE', borderTopColor: '#2E5A3A',
+          animation: 'dspin 0.8s linear infinite',
+        }} />
+      </div>
+    )
+  }
+
+  if (!user) return <Navigate to="/login" replace />
+  if (user.user_metadata?.milrim_role !== 'admin') return <Navigate to="/home" replace />
+  return <>{children}</>
+}
+
 export default function App() {
   const { user, loading } = useAuth()
 
@@ -76,7 +99,7 @@ export default function App() {
       <Route path="/stats" element={<ProtectedRoute><StatsPage /></ProtectedRoute>} />
       <Route path="/my" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
       <Route path="/my/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+      <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
     </Routes>
   )
 }

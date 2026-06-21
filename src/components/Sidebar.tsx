@@ -2,13 +2,13 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { LogoBars } from './Logo'
 import { useEffect, useState } from 'react'
 import { useTheme, THEMES } from '../contexts/ThemeContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const navItems = [
   { path: '/home', icon: 'home', label: '홈' },
   { path: '/plan', icon: 'event_note', label: '전체 계획' },
   { path: '/stats', icon: 'monitoring', label: '통계' },
   { path: '/my', icon: 'person', label: '마이페이지' },
-  { path: '/admin', icon: 'admin_panel_settings', label: '관리자' },
 ]
 
 export default function Sidebar() {
@@ -16,6 +16,8 @@ export default function Sidebar() {
   const { pathname } = useLocation()
   const [showPalette, setShowPalette] = useState(false)
   const { theme, setTheme, isDark } = useTheme()
+  const { user } = useAuth()
+  const isAdmin = user?.user_metadata?.milrim_role === 'admin'
 
   useEffect(() => {
     if (!showPalette) return
@@ -38,7 +40,7 @@ export default function Sidebar() {
       <div style={{ fontSize: 11, color: 'var(--ink-30)', padding: '0 10px', marginTop: 2 }}>밀려도 괜찮은 학습 플래너</div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 34 }}>
-        {navItems.map(item => {
+        {[...navItems, ...(isAdmin ? [{ path: '/admin', icon: 'admin_panel_settings', label: '관리자' }] : [])].map(item => {
           const active = pathname === item.path || (item.path !== '/home' && pathname.startsWith(item.path))
           return (
             <div

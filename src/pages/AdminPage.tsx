@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import { useAuth } from '../contexts/AuthContext'
 
 const users = [
   { email: 'jiwoo@milrim.app', joinDate: '2025.05.02', plans: 2, replans: 4, icon: 'eco', iconColor: '#2E5A3A', iconBg: '#DDE8CE' },
@@ -9,9 +11,30 @@ const users = [
 ]
 
 export default function AdminPage() {
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const isAdmin = user?.user_metadata?.milrim_role === 'admin'
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const filtered = users.filter(u => u.email.toLowerCase().includes(search.toLowerCase()))
+
+  if (!isAdmin) {
+    return (
+      <Layout title="관리자 모드">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center' }}>
+          <span className="ms" style={{ fontSize: 48, color: '#B5524A' }}>lock</span>
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#2B2A26', marginTop: 16 }}>접근 권한이 없습니다</div>
+          <div style={{ fontSize: 14, color: '#9a9482', marginTop: 8 }}>관리자 계정으로 로그인해주세요.</div>
+          <button
+            onClick={() => navigate('/home')}
+            style={{ marginTop: 24, border: 'none', background: '#2E5A3A', color: '#fff', fontSize: 15, fontWeight: 700, padding: '13px 28px', borderRadius: 14, fontFamily: 'var(--font)', cursor: 'pointer' }}
+          >
+            홈으로 돌아가기
+          </button>
+        </div>
+      </Layout>
+    )
+  }
 
   return (
     <Layout title="관리자 모드">

@@ -13,6 +13,7 @@ export default function MyPage() {
 
   const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
   const email = user?.email || 'user@milrim.app'
+  const isAdmin = user?.user_metadata?.milrim_role === 'admin'
 
   return (
     <Layout title="마이페이지">
@@ -39,17 +40,21 @@ export default function MyPage() {
 
         <div style={{ fontSize: 12, color: '#9a9482', fontWeight: 600, margin: '24px 4px 9px' }}>관리</div>
         <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 18, overflow: 'hidden' }}>
-          <div
-            onClick={() => navigate('/admin')}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', cursor: 'pointer' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-              <span className="ms" style={{ fontSize: 20, color: '#6B6757' }}>admin_panel_settings</span>
-              <span style={{ fontSize: 14.5, color: '#2B2A26' }}>관리자 모드</span>
-            </div>
-            <span className="ms" style={{ fontSize: 20, color: '#c2bba8' }}>chevron_right</span>
-          </div>
-          <div style={{ height: 1, background: '#F0EADC', margin: '0 18px' }} />
+          {isAdmin && (
+            <>
+              <div
+                onClick={() => navigate('/admin')}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', cursor: 'pointer' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                  <span className="ms" style={{ fontSize: 20, color: '#6B6757' }}>admin_panel_settings</span>
+                  <span style={{ fontSize: 14.5, color: '#2B2A26' }}>관리자 모드</span>
+                </div>
+                <span className="ms" style={{ fontSize: 20, color: '#c2bba8' }}>chevron_right</span>
+              </div>
+              <div style={{ height: 1, background: '#F0EADC', margin: '0 18px' }} />
+            </>
+          )}
           <div
             onClick={handleSignOut}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', cursor: 'pointer' }}
