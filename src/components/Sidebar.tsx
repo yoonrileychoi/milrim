@@ -17,7 +17,7 @@ export default function Sidebar() {
   const [showPalette, setShowPalette] = useState(false)
   const { theme, setTheme, isDark } = useTheme()
   const { user } = useAuth()
-  const isAdmin = user?.user_metadata?.milrim_role === 'admin'
+  const isAdmin = user?.app_metadata?.milrim_role === 'admin'
 
   useEffect(() => {
     if (!showPalette) return

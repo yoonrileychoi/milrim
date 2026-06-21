@@ -27,22 +27,31 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
     }
 
-    const { userId } = await req.json()
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'userId required' }), { status: 400, headers: corsHeaders })
-    }
-
     const adminClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId)
-    if (deleteError) {
-      return new Response(JSON.stringify({ error: deleteError.message }), { status: 400, headers: corsHeaders })
+    const { data: profilesData } = await adminClient
+      .from('milrim_profiles')
+      .select('id, nickname, created_at')
+      .order('created_at', { ascending: false })
+
+    const { data: authData, error: listError } = await adminClient.auth.admin.listUsers()
+    if (listError) {
+      return new Response(JSON.stringify({ error: listError.message }), { status: 400, headers: corsHeaders })
     }
 
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders })
+    const emailMap = new Map(authData.users.map(u => [u.id, u.email ?? '']))
+
+    const users = (profilesData || []).map(p => ({
+      id: p.id,
+      nickname: p.nickname,
+      email: emailMap.get(p.id) || '',
+      created_at: p.created_at,
+    }))
+
+    return new Response(JSON.stringify({ users }), { status: 200, headers: corsHeaders })
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: corsHeaders })
   }

@@ -29,7 +29,7 @@ interface KPI {
 export default function AdminPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const isAdmin = user?.user_metadata?.milrim_role === 'admin'
+  const isAdmin = user?.app_metadata?.milrim_role === 'admin'
   const [users, setUsers] = useState<AdminUser[]>([])
   const [kpi, setKpi] = useState<KPI>({ totalUsers: 0, activeUsers: 0, totalReplans: 0 })
   const [loading, setLoading] = useState(true)
@@ -45,10 +45,9 @@ export default function AdminPage() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const { data: profiles } = await supabase
-        .from('milrim_profiles_with_email')
-        .select('id, nickname, email, created_at')
-        .order('created_at', { ascending: false })
+      const { data: usersData, error: usersError } = await supabase.functions.invoke('admin-list-users')
+      if (usersError) throw usersError
+      const profiles: { id: string; nickname: string; email: string; created_at: string }[] = usersData?.users || []
 
       const { data: plans } = await supabase
         .from('milrim_plans')

@@ -58,7 +58,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) return <Navigate to="/login" replace />
-  if (user.user_metadata?.milrim_role !== 'admin') return <Navigate to="/home" replace />
+  if (user.app_metadata?.milrim_role !== 'admin') return <Navigate to="/home" replace />
   return <>{children}</>
 }
 

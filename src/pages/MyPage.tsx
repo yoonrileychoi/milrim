@@ -13,7 +13,7 @@ export default function MyPage() {
 
   const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
   const email = user?.email || 'user@milrim.app'
-  const isAdmin = user?.user_metadata?.milrim_role === 'admin'
+  const isAdmin = user?.app_metadata?.milrim_role === 'admin'
 
   return (
     <Layout title="마이페이지">
