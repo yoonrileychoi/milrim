@@ -61,8 +61,8 @@ const CARD_COLORS = [
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { user } = useAuth()
-  const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
+  const { user, nickname } = useAuth()
+  const displayName = nickname || user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
 
   const [goals, setGoals] = useState<GoalCard[]>([])
   const [loading, setLoading] = useState(true)

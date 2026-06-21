@@ -1,5 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <defs>
+    <style>
+      @font-face {
+        font-family: 'Pretendard';
+        font-weight: 400;
+        src: url('file:///C:/Users/seven/AppData/Local/Microsoft/Windows/Fonts/Pretendard-Regular.otf');
+      }
+      @font-face {
+        font-family: 'Pretendard';
+        font-weight: 500;
+        src: url('file:///C:/Users/seven/AppData/Local/Microsoft/Windows/Fonts/Pretendard-Medium.otf');
+      }
+      @font-face {
+        font-family: 'Pretendard';
+        font-weight: 600;
+        src: url('file:///C:/Users/seven/AppData/Local/Microsoft/Windows/Fonts/Pretendard-SemiBold.otf');
+      }
+      @font-face {
+        font-family: 'Pretendard';
+        font-weight: 700;
+        src: url('file:///C:/Users/seven/AppData/Local/Microsoft/Windows/Fonts/Pretendard-Bold.otf');
+      }
+      @font-face {
+        font-family: 'Pretendard';
+        font-weight: 800;
+        src: url('file:///C:/Users/seven/AppData/Local/Microsoft/Windows/Fonts/Pretendard-ExtraBold.otf');
+      }
+    </style>
     <filter id="s" x="-8%" y="-8%" width="116%" height="132%">
       <feDropShadow dx="0" dy="4" stdDeviation="14" flood-color="#2B2A26" flood-opacity="0.09"/>
     </filter>
@@ -21,12 +48,12 @@
 
   <!-- Brand name -->
   <text x="170" y="294"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
+    font-family="Pretendard, sans-serif"
     font-size="82" font-weight="800" fill="#2B2A26">밀림</text>
 
   <!-- Tagline -->
   <text x="174" y="334"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
+    font-family="Pretendard, sans-serif"
     font-size="21" font-weight="500" fill="#6E9E4E">밀려도 괜찮은 AI 학습 플래너</text>
 
   <!-- Divider -->
@@ -34,32 +61,32 @@
 
   <!-- Description -->
   <text x="174" y="393"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="18" fill="#847f6f">공부가 밀려도 포기하지 않도록</text>
+    font-family="Pretendard, sans-serif"
+    font-size="18" font-weight="400" fill="#847f6f">공부가 밀려도 포기하지 않도록</text>
   <text x="174" y="419"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="18" fill="#847f6f">AI가 목표일에 맞게 다시 계획해드려요.</text>
+    font-family="Pretendard, sans-serif"
+    font-size="18" font-weight="400" fill="#847f6f">AI가 목표일에 맞게 다시 계획해드려요.</text>
 
   <!-- Feature chips -->
   <rect x="174" y="448" width="96"  height="32" rx="16" fill="#DDE8CE"/>
   <text x="222" y="469" text-anchor="middle"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
+    font-family="Pretendard, sans-serif"
     font-size="13" font-weight="600" fill="#2E5A3A">AI 재계획</text>
 
   <rect x="278" y="448" width="104" height="32" rx="16" fill="#DDE8CE"/>
   <text x="330" y="469" text-anchor="middle"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
+    font-family="Pretendard, sans-serif"
     font-size="13" font-weight="600" fill="#2E5A3A">학습 타이머</text>
 
   <rect x="390" y="448" width="62"  height="32" rx="16" fill="#DDE8CE"/>
   <text x="421" y="469" text-anchor="middle"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
+    font-family="Pretendard, sans-serif"
     font-size="13" font-weight="600" fill="#2E5A3A">통계</text>
 
   <!-- URL -->
   <text x="174" y="574"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="14" fill="#C0B9AC">yoonrileychoi.github.io/milrim</text>
+    font-family="Pretendard, sans-serif"
+    font-size="14" font-weight="400" fill="#C0B9AC">yoonrileychoi.github.io/milrim</text>
 
   <!-- ═══ RIGHT: UI Mockup ═══════════════════════════════════════ -->
 
@@ -67,59 +94,59 @@
   <rect x="568" y="52" width="570" height="150" rx="22" fill="#fff" filter="url(#s)"/>
 
   <text x="600" y="92"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="13" fill="#b3ad9d">오늘의 계획</text>
+    font-family="Pretendard, sans-serif"
+    font-size="13" font-weight="500" fill="#b3ad9d">오늘의 계획</text>
   <text x="600" y="122"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="22" font-weight="800" fill="#2B2A26">수능 영어 독해</text>
+    font-family="Pretendard, sans-serif"
+    font-size="22" font-weight="800" fill="#2B2A26">토익단어장 외우기</text>
 
   <!-- Progress bar -->
   <rect x="600" y="140" width="388" height="9" rx="4" fill="#E8E2D2"/>
   <rect x="600" y="140" width="292" height="9" rx="4" fill="#2E5A3A"/>
   <text x="992" y="151" text-anchor="end"
-    font-family="'Malgun Gothic',sans-serif"
+    font-family="Pretendard, sans-serif"
     font-size="14" font-weight="700" fill="#2E5A3A">75%</text>
 
   <text x="600" y="183"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="13" fill="#b3ad9d">22페이지 완료 · 8페이지 남음</text>
+    font-family="Pretendard, sans-serif"
+    font-size="13" font-weight="400" fill="#b3ad9d">22개 완료 · 8개 남음</text>
 
   <!-- Card 2a: 타이머 -->
   <rect x="568" y="224" width="264" height="124" rx="20" fill="#2E5A3A" filter="url(#s)"/>
 
   <text x="598" y="255"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="13" fill="#9CC36B">학습 타이머</text>
+    font-family="Pretendard, sans-serif"
+    font-size="13" font-weight="500" fill="#9CC36B">학습 타이머</text>
   <text x="598" y="301"
-    font-family="'Courier New','Lucida Console',monospace"
+    font-family="Pretendard, sans-serif"
     font-size="36" font-weight="700" fill="#fff">25:00</text>
   <text x="598" y="328"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="13" fill="#9CC36B">▶  시작하기</text>
+    font-family="Pretendard, sans-serif"
+    font-size="13" font-weight="500" fill="#9CC36B">▶  시작하기</text>
 
   <!-- Card 2b: 최소 달성 목표 -->
   <rect x="852" y="224" width="286" height="124" rx="20" fill="#FFF8EC" filter="url(#s)"/>
 
   <text x="882" y="255"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="13" fill="#E8A33D">최소 달성 목표</text>
+    font-family="Pretendard, sans-serif"
+    font-size="13" font-weight="500" fill="#E8A33D">최소 달성 목표</text>
   <text x="882" y="300"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="30" font-weight="800" fill="#2B2A26">6 페이지</text>
+    font-family="Pretendard, sans-serif"
+    font-size="30" font-weight="800" fill="#2B2A26">6 개</text>
   <text x="882" y="328"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="13" fill="#b3ad9d">이것만 해도 충분해요.</text>
+    font-family="Pretendard, sans-serif"
+    font-size="13" font-weight="400" fill="#b3ad9d">이것만 해도 충분해요.</text>
 
   <!-- Card 3: AI 재계획 버튼 -->
   <rect x="568" y="370" width="570" height="62" rx="18" fill="#2E5A3A" filter="url(#s)"/>
   <text x="853" y="408" text-anchor="middle"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
+    font-family="Pretendard, sans-serif"
     font-size="17" font-weight="700" fill="#fff">↻  AI 계획 재생성</text>
 
   <!-- Card 4: 격려 문구 -->
   <rect x="568" y="452" width="570" height="128" rx="22" fill="#EEF5E7" filter="url(#s)"/>
 
-  <!-- Leaf icon (small bars) -->
+  <!-- Mini logo bars -->
   <rect x="614" y="482" width="7" height="22" rx="3" fill="#9CC36B" opacity="0.7"/>
   <rect x="624" y="474" width="7" height="30" rx="3" fill="#6E9E4E" opacity="0.8"/>
   <rect x="634" y="467" width="7" height="37" rx="3" fill="#2E5A3A" opacity="0.9"/>
@@ -127,13 +154,13 @@
   <rect x="654" y="483" width="7" height="21" rx="3" fill="#9CC36B" opacity="0.7"/>
 
   <text x="853" y="497" text-anchor="middle"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
+    font-family="Pretendard, sans-serif"
     font-size="17" font-weight="700" fill="#2E5A3A">포기하지만 않으면 괜찮아요.</text>
   <text x="853" y="526" text-anchor="middle"
-    font-family="'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"
-    font-size="14" fill="#6E9E4E">밀린 계획은 AI가 다시 함께 정리해드릴게요.</text>
+    font-family="Pretendard, sans-serif"
+    font-size="14" font-weight="400" fill="#6E9E4E">밀린 계획은 AI가 다시 함께 정리해드릴게요.</text>
 
-  <!-- Bottom dots (min target indicator) -->
+  <!-- Bottom dots -->
   <circle cx="811" cy="556" r="4" fill="#C8C2B4"/>
   <circle cx="827" cy="556" r="4" fill="#2E5A3A"/>
   <circle cx="843" cy="556" r="4" fill="#C8C2B4"/>
