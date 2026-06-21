@@ -122,28 +122,14 @@ CREATE POLICY "본인 학습 세션 수정" ON public.milrim_study_sessions
   WITH CHECK (auth.uid() = user_id);
 
 -- ============================================================
--- 5. 신규 유저 가입 시 프로필 자동 생성 트리거
+-- 5. 신규 유저 프로필 생성
 -- ============================================================
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  INSERT INTO public.milrim_profiles (id, nickname)
-  VALUES (
-    NEW.id,
-    COALESCE(
-      NEW.raw_user_meta_data->>'name',
-      NEW.raw_user_meta_data->>'full_name',
-      '사용자'
-    )
-  );
-  RETURN NEW;
-END;
-$$;
-
-CREATE OR REPLACE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+-- 트리거 방식 사용 안 함.
+-- 이유: 여러 사이트가 하나의 Supabase 프로젝트를 공유하므로,
+--       auth.users INSERT 트리거를 걸면 다른 사이트 신규 가입자에게도
+--       milrim_profiles 행이 생성되어 데이터가 섞임.
+-- 대신 프론트엔드 AuthContext(fetchOrCreateNickname)에서
+--       첫 MILRIM 로그인 시점에 프로필을 생성함.
+--
+-- 기존 트리거가 DB에 남아 있다면 아래 SQL로 제거:
+--   DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;

@@ -107,13 +107,13 @@ export default function Layout({ children, title }: { children: React.ReactNode;
       <div style={{ display: 'flex', minHeight: '100dvh' }}>
         <Sidebar />
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 40px 60px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 30 }}>
-              <div>
-                <div style={{ fontSize: 13, color: 'var(--ink-40)', fontWeight: 500 }}>{dateStr}</div>
-                <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--ink)', marginTop: 5 }}>{pageTitle}</div>
-              </div>
+          <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 40px 60px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
               <ThemeButtons dir="down" />
+            </div>
+            <div style={{ marginBottom: 30 }}>
+              <div style={{ fontSize: 13, color: 'var(--ink-40)', fontWeight: 500 }}>{dateStr}</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--ink)', marginTop: 5 }}>{pageTitle}</div>
             </div>
             <div className="fade-in">{children}</div>
           </div>

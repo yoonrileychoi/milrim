@@ -4,14 +4,14 @@ import { useAuth } from '../contexts/AuthContext'
 
 export default function MyPage() {
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
+  const { user, nickname, signOut } = useAuth()
 
   const handleSignOut = async () => {
     await signOut()
     navigate('/login', { replace: true })
   }
 
-  const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
+  const displayName = nickname || user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
   const email = user?.email || 'user@milrim.app'
   const isAdmin = user?.app_metadata?.milrim_role === 'admin'
 

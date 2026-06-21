@@ -25,7 +25,7 @@ export default function BottomNav() {
           </div>
         )}
       </NavLink>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/replan')}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/plan')}>
         <div style={{
           width: 54, height: 54, borderRadius: '50%', background: '#2E5A3A', color: '#fff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',

@@ -5,21 +5,25 @@ import { supabase } from '../lib/supabase'
 
 export default function ProfilePage() {
   const navigate = useNavigate()
-  const { user, refreshUser } = useAuth()
+  const { user, refreshUser, nickname: contextNickname } = useAuth()
   const [nickname, setNickname] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    if (user) {
+    if (contextNickname !== null) {
+      setNickname(contextNickname)
+    } else if (user) {
       setNickname(user.user_metadata?.name || user.user_metadata?.full_name || '')
     }
-  }, [user])
+  }, [contextNickname, user])
 
   const handleSave = async () => {
-    if (!nickname.trim()) return
+    if (!nickname.trim() || !user) return
     setSaving(true)
-    const { error } = await supabase.auth.updateUser({ data: { name: nickname.trim() } })
+    const { error } = await supabase
+      .from('milrim_profiles')
+      .upsert({ id: user.id, nickname: nickname.trim() }, { onConflict: 'id' })
     setSaving(false)
     if (!error) {
       await refreshUser()

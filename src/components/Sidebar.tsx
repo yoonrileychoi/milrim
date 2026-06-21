@@ -12,9 +12,9 @@ const navItems = [
 export default function Sidebar() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const { user } = useAuth()
+  const { user, nickname } = useAuth()
   const isAdmin = user?.app_metadata?.milrim_role === 'admin'
-  const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
+  const displayName = nickname || user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
 
   return (
     <div style={{
