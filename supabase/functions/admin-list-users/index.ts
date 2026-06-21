@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Content-Type': 'application/json',
 }
 
 Deno.serve(async (req) => {
@@ -32,7 +33,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    const { data: profilesData } = await adminClient
+    const { data: profilesData } = await supabase
       .from('milrim_profiles')
       .select('id, nickname, created_at')
 
@@ -43,7 +44,10 @@ Deno.serve(async (req) => {
 
     const profileMap = new Map((profilesData || []).map(p => [p.id, p]))
 
+    const milrimUserIds = new Set((profilesData || []).map(p => p.id))
+
     const users = authData.users
+      .filter(u => milrimUserIds.has(u.id) || u.app_metadata?.milrim_role === 'admin')
       .map(u => {
         const profile = profileMap.get(u.id)
         return {
