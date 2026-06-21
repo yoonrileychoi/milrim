@@ -112,7 +112,7 @@ export default function AdminPage() {
 
   if (!isAdmin) {
     return (
-      <Layout title="관리자 모드">
+      <Layout title="관리자 페이지">
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center' }}>
           <span className="ms" style={{ fontSize: 48, color: '#B5524A' }}>lock</span>
           <div style={{ fontSize: 18, fontWeight: 700, color: '#2B2A26', marginTop: 16 }}>접근 권한이 없습니다</div>
@@ -129,7 +129,7 @@ export default function AdminPage() {
   }
 
   return (
-    <Layout title="관리자 모드">
+    <Layout title="관리자 페이지">
       <div className="fade-in">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 }}>
           <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: '22px 24px' }}>

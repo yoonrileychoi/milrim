@@ -113,6 +113,7 @@ export default function Layout({ children, title }: { children: React.ReactNode;
                 <div style={{ fontSize: 13, color: 'var(--ink-40)', fontWeight: 500 }}>{dateStr}</div>
                 <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--ink)', marginTop: 5 }}>{pageTitle}</div>
               </div>
+              <ThemeButtons dir="down" />
             </div>
             <div className="fade-in">{children}</div>
           </div>
@@ -134,7 +135,6 @@ export default function Layout({ children, title }: { children: React.ReactNode;
           <LogoBars size="sm" />
           <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)' }}>밀림</div>
         </div>
-        <ThemeButtons dir="down" />
       </div>
 
       <div style={{ flex: 1, padding: '0 20px', paddingBottom: 86, overflowY: 'auto' }}>

@@ -39,7 +39,7 @@ const [totalSeconds, setTotalSeconds] = useState(0)
       : `${totalSecs}초`
 
   return (
-    <Layout title="나의 숲">
+    <Layout title="나의 학습 통계">
       <div className="fade-in">
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>

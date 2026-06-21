@@ -1,30 +1,20 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { LogoBars } from './Logo'
-import { useEffect, useState } from 'react'
-import { useTheme, THEMES } from '../contexts/ThemeContext'
 import { useAuth } from '../contexts/AuthContext'
 
 const navItems = [
   { path: '/home', icon: 'home', label: '홈' },
-  { path: '/plan', icon: 'event_note', label: '전체 계획' },
+  { path: '/plan', icon: 'event_note', label: '계획 세우기' },
   { path: '/stats', icon: 'monitoring', label: '통계' },
-  { path: '/my', icon: 'person', label: '마이페이지' },
+  { path: '/my', icon: 'person', label: '마이 페이지' },
 ]
 
 export default function Sidebar() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const [showPalette, setShowPalette] = useState(false)
-  const { theme, setTheme, isDark } = useTheme()
   const { user } = useAuth()
   const isAdmin = user?.app_metadata?.milrim_role === 'admin'
-
-  useEffect(() => {
-    if (!showPalette) return
-    const close = () => setShowPalette(false)
-    document.addEventListener('click', close)
-    return () => document.removeEventListener('click', close)
-  }, [showPalette])
+  const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자'
 
   return (
     <div style={{
@@ -75,88 +65,21 @@ export default function Sidebar() {
         계획 재생성
       </button>
 
-      {/* Bottom row: profile | dark mode | palette — equal thirds */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, position: 'relative' }}>
-        {/* User profile */}
-        <div
-          onClick={() => navigate('/my')}
-          style={{
-            flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
-            borderRadius: 12, background: 'var(--paper)', cursor: 'pointer', minWidth: 0,
-          }}
-        >
-          <div style={{
-            width: 30, height: 30, borderRadius: '50%', background: 'var(--primary-tint2)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', flexShrink: 0,
-          }}>
-            <span className="ms" style={{ fontSize: 17 }}>eco</span>
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>사용자</div>
+      <div
+        onClick={() => navigate('/my')}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+          borderRadius: 13, background: 'var(--paper)', border: '1px solid var(--border)',
+          cursor: 'pointer',
+        }}
+      >
+        <div style={{
+          width: 30, height: 30, borderRadius: '50%', background: 'var(--primary-tint2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', flexShrink: 0,
+        }}>
+          <span className="ms" style={{ fontSize: 17 }}>eco</span>
         </div>
-
-        {/* Dark mode toggle */}
-        <button
-          onClick={() => setTheme(isDark ? 'green' : 'dark')}
-          title={isDark ? '라이트 모드' : '다크 모드'}
-          style={{
-            flex: 1, height: 46, borderRadius: 12,
-            border: isDark ? '2px solid var(--primary)' : '2px solid var(--border2)',
-            background: isDark ? 'var(--primary-tint)' : 'var(--paper)',
-            color: isDark ? 'var(--primary)' : 'var(--ink-50)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'inherit',
-          }}
-        >
-          <span className="ms" style={{ fontSize: 20 }}>{isDark ? 'light_mode' : 'dark_mode'}</span>
-        </button>
-
-        {/* Palette */}
-        <div style={{ flex: 1, position: 'relative' }}>
-          <button
-            onClick={e => { e.stopPropagation(); setShowPalette(p => !p) }}
-            title="컬러 테마"
-            style={{
-              width: '100%', height: 46, borderRadius: 12,
-              border: showPalette ? '2px solid var(--primary)' : '2px solid var(--border2)',
-              background: showPalette ? 'var(--primary-tint)' : 'var(--paper)',
-              color: showPalette ? 'var(--primary)' : 'var(--ink-50)', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'inherit',
-            }}
-          >
-            <span className="ms" style={{ fontSize: 20 }}>palette</span>
-          </button>
-          {showPalette && (
-            <div
-              onClick={e => e.stopPropagation()}
-              style={{
-                position: 'absolute', right: 0, bottom: 'calc(100% + 8px)',
-                background: 'var(--paper)', border: '1px solid var(--border)',
-                borderRadius: 16, padding: '12px 14px',
-                boxShadow: '0 -4px 28px rgba(0,0,0,0.14)', zIndex: 200, minWidth: 168,
-              }}
-            >
-              <div style={{ fontSize: 11, color: 'var(--ink-40)', fontWeight: 600, marginBottom: 10 }}>컬러 테마</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                {THEMES.map(t => (
-                  <div key={t.name} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-                    <div
-                      onClick={() => { setTheme(t.name); setShowPalette(false) }}
-                      title={t.label}
-                      style={{
-                        width: 28, height: 28, borderRadius: '50%',
-                        background: t.swatch, cursor: 'pointer',
-                        border: theme === t.name ? '3px solid var(--ink)' : '2px solid transparent',
-                        boxShadow: theme === t.name ? '0 0 0 1px var(--border2)' : 'none',
-                      }}
-                    />
-                    <div style={{ fontSize: 9, color: 'var(--ink-50)', textAlign: 'center', lineHeight: 1.2 }}>{t.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</div>
       </div>
     </div>
   )
