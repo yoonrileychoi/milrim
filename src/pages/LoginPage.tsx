@@ -47,20 +47,7 @@ export default function LoginPage() {
             <span className="ms" style={{ fontSize: 20, fontVariationSettings: "'wght' 400" }}>chat_bubble</span>
             {loading ? '로그인 중...' : '카카오로 시작하기'}
           </button>
-          <button
-            disabled
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-              border: '1px solid #E2DCCB', background: '#fff', color: '#b3ad9d',
-              fontSize: 15.5, fontWeight: 600, padding: 16, borderRadius: 14,
-              fontFamily: 'var(--font)', cursor: 'not-allowed',
-              opacity: 0.6,
-            }}
-          >
-            <span style={{ fontSize: 16, fontWeight: 800, color: '#b3ad9d' }}>G</span>
-            Google로 시작하기 (준비 중)
-          </button>
-          {error && (
+{error && (
             <div style={{ textAlign: 'center', fontSize: 13, color: '#B5524A', marginTop: 4 }}>{error}</div>
           )}
           <div style={{ textAlign: 'center', fontSize: 11.5, color: '#b3ad9d', marginTop: 8, lineHeight: 1.5 }}>

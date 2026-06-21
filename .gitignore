@@ -8,6 +8,10 @@ function.md
 node_modules/
 dist/
 
+# 개발 도구 캐시
+dev.log
+supabase/.temp/
+
 # 환경변수
 .env
 .env.local
