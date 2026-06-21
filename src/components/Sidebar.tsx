@@ -53,7 +53,7 @@ export default function Sidebar() {
       <div style={{ flex: 1 }} />
 
       <button
-        onClick={() => navigate('/replan')}
+        onClick={() => navigate('/plan')}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           border: 'none', background: 'var(--primary)', color: '#fff',
