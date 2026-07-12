@@ -5,7 +5,6 @@ import HomePage from './pages/HomePage'
 import PlanListPage from './pages/PlanListPage'
 import GoalCreatePage from './pages/GoalCreatePage'
 import AiLoadingPage from './pages/AiLoadingPage'
-import PlanResultPage from './pages/PlanResultPage'
 import PlanDetailPage from './pages/PlanDetailPage'
 import TimerPage from './pages/TimerPage'
 import RestPage from './pages/RestPage'
@@ -89,7 +88,6 @@ export default function App() {
       <Route path="/plan" element={<ProtectedRoute><PlanListPage /></ProtectedRoute>} />
       <Route path="/plan/new" element={<ProtectedRoute><GoalCreatePage /></ProtectedRoute>} />
       <Route path="/plan/ai-loading" element={<ProtectedRoute><AiLoadingPage /></ProtectedRoute>} />
-      <Route path="/plan/result" element={<ProtectedRoute><PlanResultPage /></ProtectedRoute>} />
       <Route path="/plan/:id" element={<ProtectedRoute><PlanDetailPage /></ProtectedRoute>} />
       <Route path="/timer" element={<ProtectedRoute><TimerPage /></ProtectedRoute>} />
       <Route path="/rest" element={<ProtectedRoute><RestPage /></ProtectedRoute>} />
@@ -100,6 +98,7 @@ export default function App() {
       <Route path="/my" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
       <Route path="/my/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

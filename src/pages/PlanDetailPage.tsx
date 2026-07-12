@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { todayStr } from '../lib/date'
+import { distributeDays } from '../lib/distribute'
 
 type Plan = {
   id: string
@@ -64,19 +66,9 @@ export default function PlanDetailPage() {
   const handleGenerateDays = async () => {
     if (!plan || !user) return
     setGenerating(true)
-    const start = new Date(plan.start_date)
-    const end = new Date(plan.end_date)
-    const totalDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1
-    const rows = []
-    let remaining = plan.total_amount
-    for (let i = 0; i < totalDays; i++) {
-      const daysLeft = totalDays - i
-      const target = i === totalDays - 1 ? remaining : Math.ceil(remaining / daysLeft)
-      const d = new Date(start)
-      d.setDate(d.getDate() + i)
-      rows.push({ plan_id: plan.id, user_id: user.id, date: d.toISOString().split('T')[0], target_amount: target, min_amount: Math.max(1, Math.ceil(target * 0.2)), study_seconds: 0 })
-      remaining -= target
-    }
+    const rows = distributeDays(plan.start_date, plan.end_date, plan.total_amount).map(d => ({
+      ...d, plan_id: plan.id, user_id: user.id, study_seconds: 0,
+    }))
     const { data, error } = await supabase.from('milrim_plan_days').insert(rows).select()
     if (error) {
       console.error('plan_days insert error:', error)
@@ -97,7 +89,7 @@ export default function PlanDetailPage() {
   }
 
   const fmtShort = (d: string) => {
-    const today = new Date().toISOString().split('T')[0]
+    const today = todayStr()
     if (d === today) return '오늘'
     const [, m, day] = d.split('-')
     return `${parseInt(m)}/${parseInt(day)}`
@@ -108,7 +100,7 @@ export default function PlanDetailPage() {
 
   const completedCount = days.filter(d => d.status === 'complete').length
   const progress = days.length > 0 ? Math.round(completedCount / days.length * 100) : 0
-  const today = new Date().toISOString().split('T')[0]
+  const today = todayStr()
 
   if (loading) {
     return (

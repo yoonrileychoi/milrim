@@ -2,8 +2,24 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { todayStr, toDateStr } from '../lib/date'
 
 const unitOptions = ['페이지', '문제', '강의', '시간', '기타']
+
+const timeOptions = [
+  { label: '30분', value: 30 },
+  { label: '1시간', value: 60 },
+  { label: '2시간', value: 120 },
+  { label: '3시간', value: 180 },
+  { label: '4시간+', value: 240 },
+]
+
+const nearestTime = (m?: number) => {
+  if (!m) return 60
+  // 옵션 외 legacy 값은 가장 가까운 옵션으로 근사 매핑
+  return timeOptions.reduce((best, o) =>
+    Math.abs(o.value - m) < Math.abs(best - m) ? o.value : best, timeOptions[0].value)
+}
 
 interface EditState {
   planId?: string
@@ -22,19 +38,20 @@ export default function GoalCreatePage() {
   const edit = (state ?? {}) as EditState
   const isEdit = !!edit.planId
 
-  const today = new Date().toISOString().split('T')[0]
-  const maxDate = (() => { const d = new Date(); d.setMonth(d.getMonth() + 6); return d.toISOString().split('T')[0] })()
+  const today = todayStr()
+  const maxDate = (() => { const d = new Date(); d.setMonth(d.getMonth() + 6); return toDateStr(d) })()
 
   const [goalText, setGoalText] = useState(edit.title || '')
   const [startDate, setStartDate] = useState(edit.startDate || today)
   const [endDate, setEndDate] = useState(edit.endDate || '')
+  const [dailyMinutes, setDailyMinutes] = useState(nearestTime(edit.dailyMinutes))
   const [selectedUnit, setSelectedUnit] = useState(edit.unit || '페이지')
   const [totalAmount, setTotalAmount] = useState(edit.totalAmount?.toString() || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const dayCount = startDate && endDate
-    ? Math.max(0, Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000) + 1)
+    ? Math.max(0, Math.round((new Date(endDate + 'T00:00:00').getTime() - new Date(startDate + 'T00:00:00').getTime()) / 86400000) + 1)
     : 0
 
   const handleSubmit = async () => {
@@ -50,7 +67,7 @@ export default function GoalCreatePage() {
       title: goalText.trim(),
       start_date: startDate,
       end_date: endDate,
-      daily_minutes: 60,
+      daily_minutes: dailyMinutes,
       unit: selectedUnit,
       total_amount: parseInt(totalAmount),
     }
@@ -80,7 +97,7 @@ export default function GoalCreatePage() {
         title: goalText.trim(),
         startDate,
         endDate,
-        dailyMinutes: 60,
+        dailyMinutes,
         unit: selectedUnit,
         totalAmount: parseInt(totalAmount),
       },
@@ -150,6 +167,27 @@ export default function GoalCreatePage() {
           {dayCount > 0 && (
             <div style={{ fontSize: 11.5, color: '#2E5A3A', marginTop: 6, fontWeight: 500 }}>총 {dayCount}일 동안 학습해요</div>
           )}
+        </div>
+
+        {/* 하루 학습 가능 시간 */}
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>하루에 얼마나 공부할 수 있나요?</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {timeOptions.map(t => (
+              <div
+                key={t.value}
+                onClick={() => setDailyMinutes(t.value)}
+                style={{
+                  flex: 1, textAlign: 'center', padding: '11px 0', borderRadius: 12, cursor: 'pointer',
+                  border: dailyMinutes === t.value ? '1.5px solid #2E5A3A' : '1px solid #E2DCCB',
+                  background: dailyMinutes === t.value ? '#F0F5E6' : '#fff',
+                  fontSize: 13, color: dailyMinutes === t.value ? '#2E5A3A' : '#847f6f',
+                  fontWeight: dailyMinutes === t.value ? 700 : 400,
+                  whiteSpace: 'nowrap',
+                }}
+              >{t.label}</div>
+            ))}
+          </div>
         </div>
 
         {/* 학습 단위 */}

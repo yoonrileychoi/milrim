@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { todayStr } from '../lib/date'
 
 interface IncompleteState {
   planId?: string
@@ -19,14 +20,14 @@ export default function IncompletePage() {
 
   useEffect(() => {
     if (!planId || !planDayId) { setLoading(false); return }
-    const today = new Date().toISOString().split('T')[0]
+    const today = todayStr()
     Promise.all([
       supabase.from('milrim_plans').select('title, end_date, unit').eq('id', planId).single(),
       supabase.from('milrim_plan_days').select('target_amount').eq('id', planDayId).single(),
     ]).then(([{ data: planData }, { data: dayData }]) => {
       if (planData) {
         setPlan(planData)
-        const diff = Math.max(0, Math.round((new Date(planData.end_date).getTime() - new Date(today).getTime()) / 86400000))
+        const diff = Math.max(0, Math.round((new Date(planData.end_date + 'T00:00:00').getTime() - new Date(today + 'T00:00:00').getTime()) / 86400000))
         setRemainingDays(diff)
       }
       if (dayData) setTodayTarget(dayData.target_amount)
@@ -68,18 +69,37 @@ export default function IncompletePage() {
             <span style={{ fontSize: 14, fontWeight: 700, color: '#2B2A26' }}>목표일까지 {remainingDays}일</span>
           </div>
         </div>
-        <button
-          onClick={() => navigate('/replan', { state: { planId } })}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            border: 'none', background: '#2E5A3A', color: '#fff',
-            fontSize: 15.5, fontWeight: 700, padding: 16, borderRadius: 15,
-            fontFamily: 'var(--font)', cursor: 'pointer', marginTop: 30, width: '100%',
-          }}
-        >
-          <span className="ms" style={{ fontSize: 20 }}>auto_awesome</span>
-          AI로 계획 다시 시작
-        </button>
+        {planId && (remainingDays > 0 ? (
+          <button
+            onClick={() => navigate('/replan', { state: { planId } })}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              border: 'none', background: '#2E5A3A', color: '#fff',
+              fontSize: 15.5, fontWeight: 700, padding: 16, borderRadius: 15,
+              fontFamily: 'var(--font)', cursor: 'pointer', marginTop: 30, width: '100%',
+            }}
+          >
+            <span className="ms" style={{ fontSize: 20 }}>auto_awesome</span>
+            AI로 계획 다시 시작
+          </button>
+        ) : (
+          <>
+            <div style={{ fontSize: 13.5, color: '#847f6f', textAlign: 'center', marginTop: 26, lineHeight: 1.6 }}>
+              목표일이 오늘이라 재분배할 남은 날이 없어요.<br />기간을 수정해 다시 도전해보세요.
+            </div>
+            <button
+              onClick={() => navigate(`/plan/${planId}`)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                border: 'none', background: '#2E5A3A', color: '#fff',
+                fontSize: 15.5, fontWeight: 700, padding: 16, borderRadius: 15,
+                fontFamily: 'var(--font)', cursor: 'pointer', marginTop: 14, width: '100%',
+              }}
+            >
+              계획 수정하러 가기
+            </button>
+          </>
+        ))}
         <button
           onClick={() => navigate('/home')}
           style={{ border: 'none', background: 'transparent', color: '#b3ad9d', fontSize: 13.5, fontWeight: 500, padding: 12, fontFamily: 'var(--font)', cursor: 'pointer', marginTop: 6 }}

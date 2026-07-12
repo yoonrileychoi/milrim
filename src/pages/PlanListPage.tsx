@@ -17,17 +17,36 @@ type Plan = {
 export default function PlanListPage() {
   const navigate = useNavigate()
   const [plans, setPlans] = useState<Plan[]>([])
+  const [progressMap, setProgressMap] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase
-      .from('milrim_plans')
-      .select('id, title, start_date, end_date, unit, total_amount, replan_count, status')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        setPlans(data || [])
-        setLoading(false)
-      })
+    const fetchData = async () => {
+      const { data: plansData } = await supabase
+        .from('milrim_plans')
+        .select('id, title, start_date, end_date, unit, total_amount, replan_count, status')
+        .order('created_at', { ascending: false })
+      const list = plansData || []
+      setPlans(list)
+
+      if (list.length > 0) {
+        const { data: days } = await supabase
+          .from('milrim_plan_days')
+          .select('plan_id, actual_amount, status')
+          .in('plan_id', list.map(p => p.id))
+          .eq('status', 'complete')
+        const map: Record<string, number> = {}
+        for (const p of list) {
+          const done = (days || [])
+            .filter(d => d.plan_id === p.id)
+            .reduce((s, d) => s + (d.actual_amount ?? 0), 0)
+          map[p.id] = p.total_amount > 0 ? Math.min(100, Math.round((done / p.total_amount) * 100)) : 0
+        }
+        setProgressMap(map)
+      }
+      setLoading(false)
+    }
+    fetchData()
   }, [])
 
   const fmt = (d: string) => {
@@ -72,13 +91,13 @@ export default function PlanListPage() {
                 </div>
                 <div style={{ height: 9, background: '#EDE7D7', borderRadius: 6, overflow: 'hidden' }}>
                   <div style={{
-                    width: isDone ? '100%' : '0%', height: '100%',
+                    width: isDone ? '100%' : `${progressMap[plan.id] ?? 0}%`, height: '100%',
                     background: isDone ? '#9CC36B' : 'linear-gradient(90deg, #9CC36B, #2E5A3A)',
                     borderRadius: 6,
                   }} />
                 </div>
                 <div style={{ fontSize: 11.5, color: '#9a9482', marginTop: 10 }}>
-                  총 {plan.total_amount}{plan.unit} · 재계획 {plan.replan_count}회
+                  총 {plan.total_amount}{plan.unit} · 재계획 {plan.replan_count}회 · {isDone ? 100 : (progressMap[plan.id] ?? 0)}%
                 </div>
               </div>
             )

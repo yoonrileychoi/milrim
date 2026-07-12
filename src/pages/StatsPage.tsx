@@ -10,19 +10,16 @@ const [totalSeconds, setTotalSeconds] = useState(0)
 
   useEffect(() => {
     const fetchStats = async () => {
-      const today = new Date().toISOString().split('T')[0]
-      const todayStart = `${today}T00:00:00`
-      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1)
-      const tomorrowStart = `${tomorrow.toISOString().split('T')[0]}T00:00:00`
-
       const [{ data: sessions }, { data: completedDays }, { data: plans }] = await Promise.all([
-        supabase.from('milrim_study_sessions').select('duration_seconds').gte('started_at', todayStart).lt('started_at', tomorrowStart),
+        // 누적: 날짜 필터 없이 전체 세션
+        supabase.from('milrim_study_sessions').select('duration_seconds'),
         supabase.from('milrim_plan_days').select('date').eq('status', 'complete'),
         supabase.from('milrim_plans').select('replan_count'),
       ])
 
       setTotalSeconds(sessions?.reduce((s, r) => s + (r.duration_seconds ?? 0), 0) ?? 0)
-      setStudyDays(completedDays?.length ?? 0)
+      // 고유 날짜 수 — 같은 날 여러 플랜 완료 시 1일로 계산
+      setStudyDays(new Set((completedDays ?? []).map(d => d.date)).size)
       setReplanCount(plans?.reduce((s, p) => s + (p.replan_count ?? 0), 0) ?? 0)
       setLoading(false)
     }
@@ -47,9 +44,14 @@ const [totalSeconds, setTotalSeconds] = useState(0)
           </div>
         ) : (
           <>
+            {replanCount > 0 && (
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary)', margin: '0 2px 14px' }}>
+                {replanCount}번의 재계획 끝에 여기까지 왔어요.
+              </div>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
               <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: '22px 24px' }}>
-                <div style={{ fontSize: 13, color: '#9a9482' }}>오늘 누적 학습 시간</div>
+                <div style={{ fontSize: 13, color: '#9a9482' }}>누적 학습 시간</div>
                 <div style={{ fontSize: 28, fontWeight: 800, color: '#2B2A26', marginTop: 7 }}>
                   {totalSeconds === 0 ? <span style={{ fontSize: 18 }}>아직 없어요</span> : timeDisplay}
                 </div>

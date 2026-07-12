@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { todayStr, addDaysStr } from '../lib/date'
+import { distributeDays } from '../lib/distribute'
 
 interface ReplanState {
   planId?: string
@@ -19,10 +21,8 @@ export default function ReplanPage() {
     called.current = true
 
     const run = async () => {
-      const today = new Date().toISOString().split('T')[0]
-      const tomorrow = new Date()
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      const tomorrowStr = tomorrow.toISOString().split('T')[0]
+      const today = todayStr()
+      const tomorrowStr = addDaysStr(today, 1)
 
       const [{ data: plan }, { data: allDays }] = await Promise.all([
         supabase.from('milrim_plans').select('end_date, total_amount, replan_count').eq('id', planId).single(),
@@ -42,25 +42,9 @@ export default function ReplanPage() {
       if (tomorrowStr > plan.end_date) return
 
       // 내일부터 종료일까지 재분배
-      const start = new Date(tomorrowStr)
-      const end = new Date(plan.end_date)
-      const totalDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1
-      const base = Math.floor(remainingAmount / totalDays)
-      const extra = remainingAmount % totalDays
-      const rows = []
-
-      for (let i = 0; i < totalDays; i++) {
-        const target = base + (i < extra ? 1 : 0)
-        const d = new Date(start)
-        d.setDate(d.getDate() + i)
-        rows.push({
-          plan_id: planId, user_id: user.id,
-          date: d.toISOString().split('T')[0],
-          target_amount: Math.max(1, target),
-          min_amount: Math.max(1, Math.ceil(Math.max(1, target) * 0.2)),
-          study_seconds: 0,
-        })
-      }
+      const rows = distributeDays(tomorrowStr, plan.end_date, remainingAmount).map(d => ({
+        ...d, plan_id: planId, user_id: user.id, study_seconds: 0,
+      }))
 
       // 내일 이후 삭제 후 재삽입 + replan_count 업데이트 병렬 처리
       await supabase.from('milrim_plan_days').delete().eq('plan_id', planId).gte('date', tomorrowStr)

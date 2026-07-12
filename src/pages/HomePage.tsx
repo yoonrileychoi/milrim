@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
+import { todayStr } from '../lib/date'
 
 interface Plan {
   id: string
@@ -66,7 +67,7 @@ export default function HomePage() {
 
   const [goals, setGoals] = useState<GoalCard[]>([])
   const [loading, setLoading] = useState(true)
-  const today = new Date().toISOString().split('T')[0]
+  const today = todayStr()
 
   useEffect(() => {
     const fetchData = async () => {

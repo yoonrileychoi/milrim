@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { distributeDays } from '../lib/distribute'
 
 interface PlanState {
   planId?: string
@@ -11,32 +12,6 @@ interface PlanState {
   dailyMinutes?: number
   unit?: string
   totalAmount?: number
-}
-
-function generateDays(startDate: string, endDate: string, totalAmount: number, planId: string, userId: string) {
-  const start = new Date(startDate)
-  const end = new Date(endDate)
-  const totalDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1
-  const rows = []
-  let remaining = totalAmount
-
-  for (let i = 0; i < totalDays; i++) {
-    const daysLeft = totalDays - i
-    const target = i === totalDays - 1 ? remaining : Math.ceil(remaining / daysLeft)
-    const minAmount = Math.max(1, Math.ceil(target * 0.2))
-    const d = new Date(start)
-    d.setDate(d.getDate() + i)
-    rows.push({
-      plan_id: planId,
-      user_id: userId,
-      date: d.toISOString().split('T')[0],
-      target_amount: target,
-      min_amount: minAmount,
-      study_seconds: 0,
-    })
-    remaining -= target
-  }
-  return rows
 }
 
 export default function AiLoadingPage() {
@@ -79,8 +54,10 @@ export default function AiLoadingPage() {
       // Edge Function 실패 시 브라우저에서 직접 수학적 분배
       if (!success) {
         await supabase.from('milrim_plan_days').delete().eq('plan_id', planId)
-        const rows = generateDays(startDate, endDate, totalAmount, planId, userId)
-        await supabase.from('milrim_plan_days').insert(rows)
+        const rows = distributeDays(startDate, endDate, totalAmount).map(d => ({
+          ...d, plan_id: planId, user_id: userId, study_seconds: 0,
+        }))
+        if (rows.length > 0) await supabase.from('milrim_plan_days').insert(rows)
       }
     }
 
