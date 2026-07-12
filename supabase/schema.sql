@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS public.milrim_plans (
   start_date     DATE        NOT NULL,
   end_date       DATE        NOT NULL,
   daily_minutes  INT         NOT NULL CHECK (daily_minutes > 0),
-  unit           TEXT        NOT NULL CHECK (unit IN ('페이지', '문제', '강의', '기타')),
+  unit           TEXT        NOT NULL CHECK (unit IN ('페이지', '문제', '강의', '시간', '기타')),
   total_amount   INT         NOT NULL CHECK (total_amount > 0),
   status         TEXT        NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed')),
   replan_count   INT         NOT NULL DEFAULT 0 CHECK (replan_count >= 0),

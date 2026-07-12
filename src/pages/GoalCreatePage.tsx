@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
-const unitOptions = ['페이지', '문제', '강의', '시간']
+const unitOptions = ['페이지', '문제', '강의', '시간', '기타']
 
 interface EditState {
   planId?: string
