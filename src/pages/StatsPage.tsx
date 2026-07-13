@@ -1,23 +1,43 @@
 import { useEffect, useState } from 'react'
 import Layout from '../components/Layout'
 import { supabase } from '../lib/supabase'
+import { todayStr, addDaysStr } from '../lib/date'
+
+function formatDuration(totalSeconds: number): string {
+  const hours = Math.floor(totalSeconds / 3600)
+  const mins = Math.floor((totalSeconds % 3600) / 60)
+  const secs = totalSeconds % 60
+  return hours > 0
+    ? `${hours}시간 ${mins > 0 ? mins + '분 ' : ''}${secs}초`
+    : mins > 0
+      ? `${mins}분 ${secs}초`
+      : `${secs}초`
+}
 
 export default function StatsPage() {
 const [totalSeconds, setTotalSeconds] = useState(0)
+  const [todaySeconds, setTodaySeconds] = useState(0)
   const [studyDays, setStudyDays] = useState(0)
   const [replanCount, setReplanCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [{ data: sessions }, { data: completedDays }, { data: plans }] = await Promise.all([
-        // 누적: 날짜 필터 없이 전체 세션
+      const today = todayStr()
+      const todayStart = `${today}T00:00:00`
+      const tomorrowStart = `${addDaysStr(today, 1)}T00:00:00`
+
+      const [{ data: sessions }, { data: todaySessions }, { data: completedDays }, { data: plans }] = await Promise.all([
+        // 전체 누적: 날짜 필터 없이 전체 세션
         supabase.from('milrim_study_sessions').select('duration_seconds'),
+        // 오늘 누적: 오늘 00:00~내일 00:00 세션만
+        supabase.from('milrim_study_sessions').select('duration_seconds').gte('started_at', todayStart).lt('started_at', tomorrowStart),
         supabase.from('milrim_plan_days').select('date').eq('status', 'complete'),
         supabase.from('milrim_plans').select('replan_count'),
       ])
 
       setTotalSeconds(sessions?.reduce((s, r) => s + (r.duration_seconds ?? 0), 0) ?? 0)
+      setTodaySeconds(todaySessions?.reduce((s, r) => s + (r.duration_seconds ?? 0), 0) ?? 0)
       // 고유 날짜 수 — 같은 날 여러 플랜 완료 시 1일로 계산
       setStudyDays(new Set((completedDays ?? []).map(d => d.date)).size)
       setReplanCount(plans?.reduce((s, p) => s + (p.replan_count ?? 0), 0) ?? 0)
@@ -25,15 +45,6 @@ const [totalSeconds, setTotalSeconds] = useState(0)
     }
     fetchStats()
   }, [])
-
-  const totalHours = Math.floor(totalSeconds / 3600)
-  const totalMins = Math.floor((totalSeconds % 3600) / 60)
-  const totalSecs = totalSeconds % 60
-  const timeDisplay = totalHours > 0
-    ? `${totalHours}시간 ${totalMins > 0 ? totalMins + '분 ' : ''}${totalSecs}초`
-    : totalMins > 0
-      ? `${totalMins}분 ${totalSecs}초`
-      : `${totalSecs}초`
 
   return (
     <Layout title="나의 학습 통계">
@@ -44,16 +55,20 @@ const [totalSeconds, setTotalSeconds] = useState(0)
           </div>
         ) : (
           <>
-            {replanCount > 0 && (
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary)', margin: '0 2px 14px' }}>
-                {replanCount}번의 재계획 끝에 여기까지 왔어요.
-              </div>
-            )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-              <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: '22px 24px' }}>
-                <div style={{ fontSize: 13, color: '#9a9482' }}>누적 학습 시간</div>
-                <div style={{ fontSize: 28, fontWeight: 800, color: '#2B2A26', marginTop: 7 }}>
-                  {totalSeconds === 0 ? <span style={{ fontSize: 18 }}>아직 없어요</span> : timeDisplay}
+              <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: '22px 24px', display: 'flex' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, color: '#9a9482' }}>전체 누적 학습 시간</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#2B2A26', marginTop: 7, lineHeight: 1.3 }}>
+                    {totalSeconds === 0 ? <span style={{ fontSize: 13 }}>아직 없어요</span> : formatDuration(totalSeconds)}
+                  </div>
+                </div>
+                <div style={{ width: 1, background: '#ECE7DA', margin: '0 14px' }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, color: '#9a9482' }}>오늘 누적 학습 시간</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#2B2A26', marginTop: 7, lineHeight: 1.3 }}>
+                    {todaySeconds === 0 ? <span style={{ fontSize: 13 }}>아직 없어요</span> : formatDuration(todaySeconds)}
+                  </div>
                 </div>
               </div>
               <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: '22px 24px' }}>
