@@ -23,35 +23,56 @@ export default function ReplanPage() {
     const run = async () => {
       const today = todayStr()
       const tomorrowStr = addDaysStr(today, 1)
+      let success = false
 
-      const [{ data: plan }, { data: allDays }] = await Promise.all([
-        supabase.from('milrim_plans').select('end_date, total_amount, replan_count').eq('id', planId).single(),
-        supabase.from('milrim_plan_days').select('id, date, actual_amount, status').eq('plan_id', planId),
-      ])
+      // Edge Function 시도 (Solar AI 재계획)
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/milrim-replan`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session?.access_token}`,
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            },
+            body: JSON.stringify({ plan_id: planId, tomorrow_date: tomorrowStr }),
+          }
+        )
+        if (res.ok) success = true
+      } catch (_) {}
 
-      if (!plan || !allDays) return
-      if (today > plan.end_date) return
+      // Edge Function 실패 시 브라우저에서 직접 수학적 분배 (기존 방식)
+      if (!success) {
+        const [{ data: plan }, { data: allDays }] = await Promise.all([
+          supabase.from('milrim_plans').select('end_date, total_amount, replan_count').eq('id', planId).single(),
+          supabase.from('milrim_plan_days').select('actual_amount, status').eq('plan_id', planId),
+        ])
+        if (!plan || !allDays) return
+        if (today > plan.end_date) return
 
-      // 완료된 학습량 제외한 남은 학습량
-      const completedAmount = allDays
-        .filter(d => d.status === 'complete')
-        .reduce((sum, d) => sum + (d.actual_amount ?? 0), 0)
-      const remainingAmount = Math.max(0, plan.total_amount - completedAmount)
-      if (remainingAmount <= 0) return
+        const completedAmount = allDays
+          .filter(d => d.status === 'complete')
+          .reduce((sum, d) => sum + (d.actual_amount ?? 0), 0)
+        const remainingAmount = Math.max(0, plan.total_amount - completedAmount)
+        if (remainingAmount <= 0) return
+        if (tomorrowStr > plan.end_date) return
 
-      if (tomorrowStr > plan.end_date) return
+        const rows = distributeDays(tomorrowStr, plan.end_date, remainingAmount).map(d => ({
+          ...d, plan_id: planId, user_id: user.id, study_seconds: 0,
+        }))
 
-      // 내일부터 종료일까지 재분배
-      const rows = distributeDays(tomorrowStr, plan.end_date, remainingAmount).map(d => ({
-        ...d, plan_id: planId, user_id: user.id, study_seconds: 0,
-      }))
-
-      // 내일 이후 삭제 후 재삽입 + replan_count 업데이트 병렬 처리
-      await supabase.from('milrim_plan_days').delete().eq('plan_id', planId).gte('date', tomorrowStr)
-      await Promise.all([
-        rows.length > 0 ? supabase.from('milrim_plan_days').insert(rows) : Promise.resolve(),
-        supabase.from('milrim_plans').update({ replan_count: (plan.replan_count ?? 0) + 1 }).eq('id', planId),
-      ])
+        await supabase.from('milrim_plan_days').delete().eq('plan_id', planId).gte('date', tomorrowStr)
+        await Promise.all([
+          rows.length > 0 ? supabase.from('milrim_plan_days').insert(rows) : Promise.resolve(),
+          supabase.from('milrim_plans').update({
+            replan_count: (plan.replan_count ?? 0) + 1,
+            generated_by: 'fallback',
+            ai_strategy: null,
+          }).eq('id', planId),
+        ])
+      }
     }
 
     const minWait = new Promise<void>(res => setTimeout(res, 1500))

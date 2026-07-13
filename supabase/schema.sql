@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS public.milrim_plans (
   total_amount   INT         NOT NULL CHECK (total_amount > 0),
   status         TEXT        NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed')),
   replan_count   INT         NOT NULL DEFAULT 0 CHECK (replan_count >= 0),
+  ai_strategy    TEXT,
+  generated_by   TEXT        CHECK (generated_by IS NULL OR generated_by IN ('solar', 'fallback')),
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

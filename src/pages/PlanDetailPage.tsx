@@ -15,6 +15,7 @@ type Plan = {
   daily_minutes: number
   replan_count: number
   status: 'active' | 'completed'
+  ai_strategy: string | null
 }
 
 type PlanDay = {
@@ -147,6 +148,21 @@ export default function PlanDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* AI 재계획 한줄 코멘트 */}
+        {plan.ai_strategy && (
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10,
+            background: '#F1F7E8', border: '1px solid #DDE8CE', borderRadius: 14,
+            padding: '13px 16px', marginTop: 14,
+          }}>
+            <span className="ms" style={{ fontSize: 18, color: '#6B9C4A', flexShrink: 0, marginTop: 1 }}>auto_awesome</span>
+            <div style={{ fontSize: 13, color: '#3E5A2E', lineHeight: 1.55 }}>
+              <span style={{ fontWeight: 700 }}>AI 메이트의 한 마디: </span>
+              {plan.ai_strategy}
+            </div>
+          </div>
+        )}
 
         {/* daily tasks */}
         <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2A26', margin: '20px 2px 11px' }}>일자별 계획</div>
