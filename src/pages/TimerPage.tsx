@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { readTimerSession, writeTimerSession, clearTimerSession, currentSeconds } from '../lib/timerSession'
+import type { TimerSession } from '../lib/timerSession'
 
 interface TimerState {
   planId?: string
@@ -13,33 +15,96 @@ interface TimerState {
   initialSeconds?: number
 }
 
+function resolveSession(routerState: TimerState): TimerSession | null {
+  const stored = readTimerSession()
+  if (stored && (!routerState.planDayId || stored.planDayId === routerState.planDayId)) {
+    // 페이지 진입 = 학습 재개 의도로 취급 (일시정지 상태로 남아있었다면 지금부터 다시 카운트)
+    if (stored.startedAt == null) stored.startedAt = Date.now()
+    writeTimerSession(stored)
+    return stored
+  }
+  if (routerState.planDayId && routerState.planId) {
+    const fresh: TimerSession = {
+      planId: routerState.planId,
+      planDayId: routerState.planDayId,
+      title: routerState.title,
+      target: routerState.target,
+      unit: routerState.unit,
+      dailyMinutes: routerState.dailyMinutes,
+      elapsedBefore: routerState.initialSeconds ?? 0,
+      startedAt: Date.now(),
+    }
+    writeTimerSession(fresh)
+    return fresh
+  }
+  return null
+}
+
 export default function TimerPage() {
   const navigate = useNavigate()
   const { state } = useLocation()
   const { user } = useAuth()
-  const { planId, planDayId, title, target, unit, dailyMinutes, initialSeconds } = (state ?? {}) as TimerState
+  const routerState = (state ?? {}) as TimerState
 
-  const [seconds, setSeconds] = useState(initialSeconds ?? 0)
+  const [session] = useState(() => resolveSession(routerState))
+  const { planId, planDayId, title, target, unit, dailyMinutes } = session ?? routerState
+
+  const [seconds, setSeconds] = useState(() => (session ? currentSeconds(session) : 0))
   const [running, setRunning] = useState(true)
   const [showEndModal, setShowEndModal] = useState(false)
   const [saving, setSaving] = useState(false)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    if (running) {
-      intervalRef.current = setInterval(() => setSeconds(s => s + 1), 1000)
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current)
+    if (!session) navigate('/home', { replace: true })
+  }, [session, navigate])
+
+  // 백그라운드 탭 스로틀링 대비: 매 tick과 탭 복귀 시 실제 경과 시간을 다시 계산
+  useEffect(() => {
+    if (!session || !running) return
+    const tick = () => setSeconds(currentSeconds(session))
+    tick()
+    const id = setInterval(tick, 1000)
+    document.addEventListener('visibilitychange', tick)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', tick)
     }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
-  }, [running])
+  }, [running, session])
 
   const mins = String(Math.floor(seconds / 60)).padStart(2, '0')
   const secs = String(seconds % 60).padStart(2, '0')
+
+  useEffect(() => {
+    const original = document.title
+    return () => { document.title = original }
+  }, [])
+
+  useEffect(() => {
+    if (session) document.title = `${mins}:${secs} · 집중 중`
+  }, [mins, secs, session])
+
   const maxSec = (dailyMinutes ?? 25) * 60
   const pct = Math.min(seconds / maxSec, 1)
   const r = 112, circ = 2 * Math.PI * r
   const offset = circ * (1 - pct)
+
+  const pause = () => {
+    if (session) {
+      session.elapsedBefore = currentSeconds(session)
+      session.startedAt = null
+      writeTimerSession(session)
+      setSeconds(session.elapsedBefore)
+    }
+    setRunning(false)
+  }
+
+  const resume = () => {
+    if (session) {
+      session.startedAt = Date.now()
+      writeTimerSession(session)
+    }
+    setRunning(true)
+  }
 
   const saveSession = async (status: 'complete' | 'incomplete') => {
     if (!planDayId || !planId || !user) return
@@ -62,16 +127,20 @@ export default function TimerPage() {
   }
 
   const handleComplete = async () => {
-    setRunning(false)
+    pause()
     await saveSession('complete')
+    clearTimerSession()
     navigate('/complete', { replace: true, state: { seconds, target, unit, planId } })
   }
 
   const handleIncomplete = async () => {
-    setRunning(false)
+    pause()
     await saveSession('incomplete')
+    clearTimerSession()
     navigate('/incomplete', { replace: true, state: { planId, planDayId } })
   }
+
+  if (!session) return null
 
   return (
     <div className="fade-in" style={{
@@ -113,14 +182,14 @@ export default function TimerPage() {
 
         <div style={{ display: 'flex', gap: 11 }}>
           <button
-            onClick={() => { setRunning(false); navigate('/rest', { state: { planId, planDayId, title, target, unit, dailyMinutes, seconds } }) }}
+            onClick={() => { pause(); navigate('/rest', { state: { planId, planDayId, title, target, unit, dailyMinutes, seconds: session.elapsedBefore } }) }}
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: '1px solid #DDD7C6', background: '#fff', color: '#6B6757', fontSize: 15.5, fontWeight: 700, padding: 16, borderRadius: 15, fontFamily: 'var(--font)', cursor: 'pointer' }}
           >
             <span className="ms" style={{ fontSize: 20, fontVariationSettings: "'wght' 400" }}>pause</span>
             일시정지
           </button>
           <button
-            onClick={() => { setRunning(false); setShowEndModal(true) }}
+            onClick={() => { pause(); setShowEndModal(true) }}
             style={{ flex: 1, border: 'none', background: '#2E5A3A', color: '#fff', fontSize: 15.5, fontWeight: 700, padding: 16, borderRadius: 15, fontFamily: 'var(--font)', cursor: 'pointer' }}
           >
             종료
@@ -130,7 +199,7 @@ export default function TimerPage() {
 
       {showEndModal && (
         <div
-          onClick={() => { setShowEndModal(false); setRunning(true) }}
+          onClick={() => { setShowEndModal(false); resume() }}
           style={{ position: 'absolute', inset: 0, background: 'rgba(43,42,38,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 30, padding: 24 }}
         >
           <div
@@ -157,7 +226,7 @@ export default function TimerPage() {
                 아직 다 못 했어요
               </button>
               <button
-                onClick={() => { setShowEndModal(false); setRunning(true) }}
+                onClick={() => { setShowEndModal(false); resume() }}
                 style={{ border: 'none', background: 'transparent', color: '#b3ad9d', fontSize: 13.5, fontWeight: 500, padding: 6, fontFamily: 'var(--font)', cursor: 'pointer' }}
               >
                 계속 공부하기

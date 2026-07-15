@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
+import { readTimerSession, clearTimerSession, currentSeconds } from '../lib/timerSession'
 
 interface RestState {
   planId?: string
@@ -17,7 +18,16 @@ export default function RestPage() {
   const navigate = useNavigate()
   const { state } = useLocation()
   const { user } = useAuth()
-  const { planId, planDayId, title, target, unit, dailyMinutes, seconds = 0 } = (state ?? {}) as RestState
+  const routerState = (state ?? {}) as RestState
+  // 새로고침으로 router state가 날아간 경우 localStorage에 저장된 값으로 복원
+  const [stored] = useState(() => (routerState.planDayId ? null : readTimerSession()))
+  const planId = routerState.planId ?? stored?.planId
+  const planDayId = routerState.planDayId ?? stored?.planDayId
+  const title = routerState.title ?? stored?.title
+  const target = routerState.target ?? stored?.target
+  const unit = routerState.unit ?? stored?.unit
+  const dailyMinutes = routerState.dailyMinutes ?? stored?.dailyMinutes
+  const seconds = routerState.seconds ?? (stored ? currentSeconds(stored) : 0)
   const [quitting, setQuitting] = useState(false)
 
   const mins = String(Math.floor(seconds / 60)).padStart(2, '0')
@@ -45,6 +55,7 @@ export default function RestPage() {
         }),
       ])
     }
+    clearTimerSession()
     navigate('/incomplete', { replace: true, state: { planId, planDayId } })
   }
 
