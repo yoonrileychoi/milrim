@@ -85,6 +85,12 @@ export default function AiLoadingPage() {
       <div style={{ fontSize: 13.5, color: '#C2E098', marginTop: 14, textAlign: 'center', lineHeight: 1.6 }}>
         기간 · 시간 · 학습량을 분석해서<br />일간 · 주간 · 최소 달성 목표를 만들게요
       </div>
+      <div style={{
+        position: 'fixed', bottom: 28, left: 0, right: 0, textAlign: 'center',
+        fontSize: 11.5, color: 'rgba(255,255,255,0.45)', letterSpacing: 0.4,
+      }}>
+        Powered by Solar
+      </div>
     </div>
   )
 }

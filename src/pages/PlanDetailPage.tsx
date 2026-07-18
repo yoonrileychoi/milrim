@@ -160,9 +160,14 @@ export default function PlanDetailPage() {
             padding: '13px 16px', marginTop: 14,
           }}>
             <span className="ms" style={{ fontSize: 18, color: '#6B9C4A', flexShrink: 0, marginTop: 1 }}>auto_awesome</span>
-            <div style={{ fontSize: 13, color: '#3E5A2E', lineHeight: 1.55 }}>
-              <span style={{ fontWeight: 700 }}>AI 메이트의 한 마디: </span>
-              {plan.ai_strategy}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, color: '#3E5A2E', lineHeight: 1.55 }}>
+                <span style={{ fontWeight: 700 }}>AI 메이트의 한 마디: </span>
+                {plan.ai_strategy}
+              </div>
+              <div style={{ fontSize: 10.5, color: '#9CB088', textAlign: 'right', marginTop: 4 }}>
+                Powered by Solar
+              </div>
             </div>
           </div>
         )}

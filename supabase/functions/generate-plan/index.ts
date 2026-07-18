@@ -99,6 +99,7 @@ Deno.serve(async (req) => {
     }
 
     let days: { date: string; target_amount: number; min_amount: number }[] | undefined
+    let aiComment: string | null = null
 
     const solarKey = Deno.env.get('SOLAR_API_KEY')
 
@@ -136,9 +137,10 @@ Deno.serve(async (req) => {
 - min_amount = max(1, ceil(target_amount × 0.2))
 - 학습 가능 시간(${daily_minutes}분)에 비례해 분배 (짧은 날은 적게)
 - 정수만 사용
+- comment: 위 분배를 어떻게, 왜 그렇게 했는지 한국어 존댓말 한 문장(30~120자)으로 다정하고 담백하게 설명. 사용자를 압박하는 표현이나 "밀렸다", "실패" 같은 단어는 쓰지 않고, 이모지도 쓰지 않는다.
 
 응답 형식(JSON만):
-{"days":[{"date":"YYYY-MM-DD","target_amount":숫자,"min_amount":숫자}]}`,
+{"days":[{"date":"YYYY-MM-DD","target_amount":숫자,"min_amount":숫자}],"comment":"한 줄 코멘트"}`,
               },
             ],
             temperature: 0.2,
@@ -169,6 +171,11 @@ Deno.serve(async (req) => {
                   target_amount: d.target_amount,
                   min_amount: Math.max(1, Math.ceil(d.target_amount * 0.2)),
                 }))
+
+              // comment는 days 검증과 별개: 형식이 안 맞아도 fallback을 유발하지 않는다
+              if (typeof parsed.comment === 'string' && parsed.comment.trim().length >= 10) {
+                aiComment = parsed.comment.trim().slice(0, 200)
+              }
             }
           }
         }
@@ -183,6 +190,7 @@ Deno.serve(async (req) => {
     const generatedBy = days ? 'solar' : 'fallback'
     if (!days) {
       days = fallbackDays(start_date, end_date, total_amount)
+      aiComment = null // fallback 시 재생성 이전의 오래된 코멘트가 남지 않도록 초기화
     }
 
     const rows = days.map((d) => ({
@@ -213,7 +221,7 @@ Deno.serve(async (req) => {
     // — 여기서 500을 내면 브라우저 fallback이 Solar 분배 결과를 지우고 재분배해버림)
     const { error: markError } = await supabase
       .from('milrim_plans')
-      .update({ generated_by: generatedBy })
+      .update({ generated_by: generatedBy, ai_strategy: aiComment })
       .eq('id', plan_id)
     if (markError) console.error('generated_by update failed:', markError)
 
