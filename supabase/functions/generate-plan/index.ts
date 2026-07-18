@@ -180,6 +180,7 @@ Deno.serve(async (req) => {
     }
 
     // Solar 실패 또는 키 없을 때 수학적 분배로 fallback
+    const generatedBy = days ? 'solar' : 'fallback'
     if (!days) {
       days = fallbackDays(start_date, end_date, total_amount)
     }
@@ -208,8 +209,16 @@ Deno.serve(async (req) => {
       if (insertError) throw insertError
     }
 
+    // 무엇으로 생성됐는지 기록 (실패해도 계획 생성 자체는 성공이므로 throw하지 않음
+    // — 여기서 500을 내면 브라우저 fallback이 Solar 분배 결과를 지우고 재분배해버림)
+    const { error: markError } = await supabase
+      .from('milrim_plans')
+      .update({ generated_by: generatedBy })
+      .eq('id', plan_id)
+    if (markError) console.error('generated_by update failed:', markError)
+
     return new Response(
-      JSON.stringify({ success: true, days_count: rows.length }),
+      JSON.stringify({ success: true, days_count: rows.length, generated_by: generatedBy }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 

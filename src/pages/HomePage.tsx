@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
-import { todayStr } from '../lib/date'
+import { todayStr, addDaysStr, diffDays } from '../lib/date'
+import { pickCoachSegment, COACH_FALLBACK, type CoachDayRow } from '../lib/coach'
 
 interface Plan {
   id: string
@@ -12,6 +13,8 @@ interface Plan {
   total_amount: number
   replan_count: number
   daily_minutes: number
+  start_date: string
+  end_date: string
 }
 
 interface PlanDay {
@@ -30,6 +33,7 @@ interface GoalCard extends Plan {
   completedDays: number
   completedAmount: number
   progress: number
+  overdueDays: number
 }
 
 function CircleProgress({ pct, size = 84 }: { pct: number; size?: number }) {
@@ -67,44 +71,96 @@ export default function HomePage() {
 
   const [goals, setGoals] = useState<GoalCard[]>([])
   const [loading, setLoading] = useState(true)
+  const [studyDayCount, setStudyDayCount] = useState(0)
+  const [coachMessage, setCoachMessage] = useState('')
+  const [coachIsAi, setCoachIsAi] = useState(false)
+  const [showComeback, setShowComeback] = useState(false)
   const today = todayStr()
 
+  // 복귀 환영 토스트 — 3일 이상 공백 후 첫 방문
   useEffect(() => {
+    if (!user) return
+    const key = `milrim_last_visit_${user.id}`
+    const prev = localStorage.getItem(key)
+    localStorage.setItem(key, today)
+    if (prev && diffDays(today, prev) >= 3) {
+      setShowComeback(true)
+      const t = setTimeout(() => setShowComeback(false), 6000)
+      return () => clearTimeout(t)
+    }
+  }, [user, today])
+
+  useEffect(() => {
+    if (!user) return
     const fetchData = async () => {
-      const { data: plans, error } = await supabase
-        .from('milrim_plans')
-        .select('id, title, unit, total_amount, replan_count, daily_minutes')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-
-      if (error || !plans || plans.length === 0) {
-        setLoading(false)
-        return
-      }
-
-      const planIds = plans.map((p: Plan) => p.id)
-
-      const [{ data: todayDays }, { data: allDays }] = await Promise.all([
-        supabase.from('milrim_plan_days').select('*').in('plan_id', planIds).eq('date', today),
-        supabase.from('milrim_plan_days').select('plan_id, actual_amount, status').in('plan_id', planIds),
+      const [
+        { data: plans },
+        { data: completeDates },
+        { data: recentDays },
+        { data: coachRows },
+      ] = await Promise.all([
+        supabase
+          .from('milrim_plans')
+          .select('id, title, unit, total_amount, replan_count, daily_minutes, start_date, end_date')
+          // 관리자 계정은 RLS 정책상 남의 플랜도 조회되므로 본인 것만 명시 필터
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false }),
+        supabase.from('milrim_plan_days').select('date').eq('user_id', user.id).eq('status', 'complete'),
+        supabase
+          .from('milrim_plan_days')
+          .select('date, target_amount, actual_amount, status, study_seconds')
+          .eq('user_id', user.id)
+          .gte('date', addDaysStr(today, -14))
+          .lt('date', today),
+        supabase.from('milrim_daily_messages').select('segment, message').eq('date', today),
       ])
 
-      const cards: GoalCard[] = plans.map((p: Plan) => {
-        const todayDay = todayDays?.find((d: PlanDay) => d.plan_id === p.id) ?? null
-        const doneDays = allDays?.filter((d: { plan_id: string; status: string }) => d.plan_id === p.id && d.status === 'complete') ?? []
-        const completedAmount = doneDays.reduce((sum: number, d: { actual_amount: number | null }) => sum + (d.actual_amount ?? 0), 0)
-        const progress = p.total_amount > 0 ? Math.round((completedAmount / p.total_amount) * 100) : 0
-        return { ...p, todayDay, completedDays: doneDays.length, completedAmount, progress }
-      })
+      setStudyDayCount(new Set((completeDates ?? []).map((d: { date: string }) => d.date)).size)
 
-      setGoals(cards)
+      let cards: GoalCard[] = []
+      if (plans && plans.length > 0) {
+        const planIds = plans.map((p: Plan) => p.id)
+        const [{ data: todayDays }, { data: allDays }] = await Promise.all([
+          supabase.from('milrim_plan_days').select('*').in('plan_id', planIds).eq('date', today),
+          supabase.from('milrim_plan_days').select('plan_id, date, actual_amount, status').in('plan_id', planIds),
+        ])
+
+        cards = plans.map((p: Plan) => {
+          const todayDay = todayDays?.find((d: PlanDay) => d.plan_id === p.id) ?? null
+          const planDays = allDays?.filter((d: { plan_id: string }) => d.plan_id === p.id) ?? []
+          const doneDays = planDays.filter((d: { status: string }) => d.status === 'complete')
+          const completedAmount = doneDays.reduce((sum: number, d: { actual_amount: number | null }) => sum + (d.actual_amount ?? 0), 0)
+          const progress = p.total_amount > 0 ? Math.round((completedAmount / p.total_amount) * 100) : 0
+          const overdueDays = planDays.filter((d: { date: string; status: string }) => d.date < today && d.status !== 'complete').length
+          return { ...p, todayDay, completedDays: doneDays.length, completedAmount, progress, overdueDays }
+        })
+        setGoals(cards)
+      }
+
+      // Solar 일일 코치 메시지 — 세그먼트는 본인 데이터로 브라우저가 판정
+      const segment = pickCoachSegment({
+        today,
+        recentDays: (recentDays ?? []) as CoachDayRow[],
+        plans: cards.map(c => ({
+          start_date: c.start_date,
+          end_date: c.end_date,
+          total_amount: c.total_amount,
+          completedAmount: c.completedAmount,
+        })),
+      })
+      const aiMessage = coachRows?.find((r: { segment: string }) => r.segment === segment)?.message
+      setCoachMessage(aiMessage ?? COACH_FALLBACK[segment])
+      setCoachIsAi(!!aiMessage)
+
       setLoading(false)
     }
 
     fetchData()
-  }, [today])
+  }, [today, user?.id])
 
   const todayTasks = goals.filter(g => g.todayDay)
+  const mostOverdue = goals.filter(g => g.overdueDays > 0).sort((a, b) => b.overdueDays - a.overdueDays)[0] ?? null
 
   return (
     <Layout title={`안녕하세요, ${displayName}님`}>
@@ -114,6 +170,12 @@ export default function HomePage() {
         </div>
       ) : (
         <>
+          {/* 누적 공부일 — 리셋되지 않는 숲 카운터 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14, fontSize: 12.5, color: 'var(--primary)', fontWeight: 700 }}>
+            <span className="ms" style={{ fontSize: 16 }}>eco</span>
+            {studyDayCount > 0 ? `${studyDayCount}일째 숲을 가꾸는 중이에요` : '오늘부터 숲을 가꿔볼까요?'}
+          </div>
+
           {/* Goal cards header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>오늘의 계획</div>
@@ -132,7 +194,19 @@ export default function HomePage() {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, opacity: 0.82, fontWeight: 500 }}>{g.title}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                        <div style={{ fontSize: 13, opacity: 0.82, fontWeight: 500 }}>{g.title}</div>
+                        {g.overdueDays > 0 && (
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
+                            background: 'rgba(255,255,255,0.16)', borderRadius: 20, padding: '3px 9px',
+                            fontSize: 10.5, fontWeight: 700,
+                          }}>
+                            <span className="ms" style={{ fontSize: 12 }}>eco</span>
+                            이어가는 중
+                          </div>
+                        )}
+                      </div>
                       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 8 }}>
                         <div style={{ fontSize: 38, fontWeight: 800, lineHeight: 1 }}>
                           {g.todayDay?.target_amount ?? '-'}<span style={{ fontSize: 18 }}>{dispUnit(g.unit)}</span>
@@ -176,7 +250,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Today's tasks + encouragement */}
+          {/* Today's tasks + coach message */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginTop: 16 }}>
             <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 22, padding: '22px 24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -238,15 +312,50 @@ export default function HomePage() {
               )}
             </div>
 
-            <div style={{ flex: 1, background: 'var(--primary-tint)', borderRadius: 22, padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16 }}>
+            <div style={{ flex: 1, background: 'var(--primary-tint)', borderRadius: 22, padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 13 }}>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
                 <span className="ms" style={{ fontSize: 28 }}>eco</span>
               </div>
-              <div style={{ fontSize: 16, color: 'var(--primary)', lineHeight: 1.65, fontWeight: 600 }}>
-                포기하지만 않으면 괜찮아요. 밀린 계획은 AI가 다시 함께 정리해드릴게요.
+              {coachIsAi && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: 'var(--primary)', opacity: 0.75 }}>
+                  <span className="ms" style={{ fontSize: 13 }}>auto_awesome</span>
+                  AI 메이트의 오늘 한마디
+                </div>
+              )}
+              <div style={{ fontSize: 15, color: 'var(--primary)', lineHeight: 1.65, fontWeight: 600 }}>
+                {coachMessage}
               </div>
+              {mostOverdue && (
+                <button
+                  onClick={() => navigate('/replan', { state: { planId: mostOverdue.id } })}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                    border: 'none', background: 'var(--primary)', color: '#fff',
+                    fontSize: 14, fontWeight: 700, padding: '13px 16px', borderRadius: 12,
+                    fontFamily: 'var(--font)', cursor: 'pointer', marginTop: 3,
+                  }}
+                >
+                  <span className="ms" style={{ fontSize: 18 }}>auto_awesome</span>
+                  '{mostOverdue.title}' 이어가기
+                </button>
+              )}
             </div>
           </div>
+
+          {/* 복귀 환영 토스트 */}
+          {showComeback && (
+            <div className="fade-in" style={{
+              position: 'fixed', left: '50%', transform: 'translateX(-50%)', bottom: 96, zIndex: 300,
+              background: 'var(--primary)', color: '#fff', borderRadius: 16, padding: '14px 20px',
+              display: 'flex', alignItems: 'center', gap: 10, maxWidth: 'calc(100vw - 40px)',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+            }}>
+              <span className="ms" style={{ fontSize: 20, color: '#C2E098' }}>eco</span>
+              <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 }}>
+                다시 와줘서 고마워요. 돌아오기만 하면, 언제든 이어갈 수 있어요.
+              </div>
+            </div>
+          )}
         </>
       )}
     </Layout>

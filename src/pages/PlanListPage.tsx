@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 
 type Plan = {
   id: string
@@ -16,15 +17,19 @@ type Plan = {
 
 export default function PlanListPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [plans, setPlans] = useState<Plan[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!user) return
     const fetchData = async () => {
       const { data: plansData } = await supabase
         .from('milrim_plans')
         .select('id, title, start_date, end_date, unit, total_amount, replan_count, status')
+        // 관리자 계정은 RLS 정책상 남의 플랜도 조회되므로 본인 것만 명시 필터
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
       const list = plansData || []
       setPlans(list)
@@ -47,7 +52,7 @@ export default function PlanListPage() {
       setLoading(false)
     }
     fetchData()
-  }, [])
+  }, [user?.id])
 
   const fmt = (d: string) => {
     const [, m, day] = d.split('-')

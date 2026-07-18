@@ -124,7 +124,32 @@ CREATE POLICY "본인 학습 세션 수정" ON public.milrim_study_sessions
   WITH CHECK (auth.uid() = user_id);
 
 -- ============================================================
--- 5. 신규 유저 프로필 생성
+-- 5. milrim_daily_messages (Solar 일일 코치 메시지)
+-- ============================================================
+-- 매일 자정(KST) milrim-coach Edge Function이 Solar로 생성한
+-- 세그먼트별 공용 격려 문구. 개인 데이터 아님 — 읽기는 로그인 사용자 전체,
+-- 쓰기는 서비스 롤(Edge Function)만. 상세는 migrations/2026-07-16_daily_messages.sql
+CREATE TABLE IF NOT EXISTS public.milrim_daily_messages (
+  id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  date       DATE        NOT NULL,
+  segment    TEXT        NOT NULL CHECK (segment IN (
+    'standard_high', 'standard_mid', 'standard_low', 'standard_min',
+    'steady_high', 'steady_mid', 'steady_low', 'steady_min',
+    'burst_high', 'burst_mid', 'burst_low', 'burst_min',
+    'warmup', 'comeback', 'deadline', 'no_plan'
+  )),
+  message    TEXT        NOT NULL CHECK (char_length(message) BETWEEN 1 AND 300),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (date, segment)
+);
+
+ALTER TABLE public.milrim_daily_messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "로그인 사용자 일일 메시지 조회" ON public.milrim_daily_messages
+  FOR SELECT TO authenticated USING (true);
+
+-- ============================================================
+-- 6. 신규 유저 프로필 생성
 -- ============================================================
 -- 트리거 방식 사용 안 함.
 -- 이유: 여러 사이트가 하나의 Supabase 프로젝트를 공유하므로,

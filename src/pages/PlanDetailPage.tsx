@@ -39,9 +39,10 @@ export default function PlanDetailPage() {
   const [generating, setGenerating] = useState(false)
 
   useEffect(() => {
-    if (!id) return
+    if (!id || !user) return
     Promise.all([
-      supabase.from('milrim_plans').select('*').eq('id', id).single(),
+      // 관리자 계정은 RLS 정책상 남의 플랜도 조회되므로 본인 것만 명시 필터
+      supabase.from('milrim_plans').select('*').eq('id', id).eq('user_id', user.id).single(),
       supabase.from('milrim_plan_days').select('*').eq('plan_id', id).order('date', { ascending: true }),
     ]).then(([planRes, daysRes]) => {
       if (planRes.error || !planRes.data) {
@@ -52,7 +53,7 @@ export default function PlanDetailPage() {
       setDays(daysRes.data || [])
       setLoading(false)
     })
-  }, [id, navigate])
+  }, [id, user?.id, navigate])
 
   const handleDelete = async () => {
     setDeleting(true)
@@ -73,6 +74,8 @@ export default function PlanDetailPage() {
     const { data, error } = await supabase.from('milrim_plan_days').insert(rows).select()
     if (error) {
       console.error('plan_days insert error:', error)
+    } else {
+      await supabase.from('milrim_plans').update({ generated_by: 'fallback' }).eq('id', plan.id)
     }
     if (data && data.length > 0) {
       setDays(data as PlanDay[])

@@ -58,6 +58,7 @@ export default function AiLoadingPage() {
           ...d, plan_id: planId, user_id: userId, study_seconds: 0,
         }))
         if (rows.length > 0) await supabase.from('milrim_plan_days').insert(rows)
+        await supabase.from('milrim_plans').update({ generated_by: 'fallback' }).eq('id', planId)
       }
     }
 

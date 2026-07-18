@@ -36,6 +36,7 @@ export default function AdminPage() {
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [search, setSearch] = useState('')
+  const [hoveredPlanLink, setHoveredPlanLink] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isAdmin) return
@@ -165,7 +166,7 @@ export default function AdminPage() {
               padding: '10px 22px', borderTop: '1px solid #F0EADC', borderBottom: '1px solid #F0EADC',
               fontSize: 12, color: '#9a9482', fontWeight: 600,
             }}>
-              <div>사용자</div><div>가입일</div><div style={{ textAlign: 'center' }}>플랜</div><div style={{ textAlign: 'center' }}>재계획</div><div style={{ textAlign: 'right' }}>관리</div>
+              <div>사용자</div><div>가입일</div><div style={{ textAlign: 'center' }}>학습 계획</div><div style={{ textAlign: 'center' }}>재계획</div><div style={{ textAlign: 'right' }}>관리</div>
             </div>
             {loading ? (
               <div style={{ padding: '32px', textAlign: 'center', color: '#9a9482' }}>불러오는 중...</div>
@@ -189,7 +190,19 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div style={{ fontSize: 13, color: '#847f6f' }}>{u.joinDate}</div>
-                  <div style={{ fontSize: 14, color: '#2B2A26', textAlign: 'center' }}>{u.plans}</div>
+                  <div style={{ textAlign: 'center' }}>
+                    <span
+                      onClick={() => navigate(`/admin/users/${u.id}/plans`, { state: { nickname: u.nickname, email: u.email } })}
+                      onMouseEnter={() => setHoveredPlanLink(u.id)}
+                      onMouseLeave={() => setHoveredPlanLink(null)}
+                      style={{
+                        fontSize: 14, color: '#2E5A3A', fontWeight: 600, cursor: 'pointer',
+                        textDecoration: hoveredPlanLink === u.id ? 'underline' : 'none',
+                      }}
+                    >
+                      {u.plans}
+                    </span>
+                  </div>
                   <div style={{ fontSize: 14, color: '#2B2A26', textAlign: 'center' }}>{u.replans}</div>
                   <div style={{ textAlign: 'right', color: '#B5524A', cursor: 'pointer' }} onClick={() => setDeleteTarget(u)}>
                     <span className="ms" style={{ fontSize: 20 }}>delete</span>
