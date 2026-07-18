@@ -154,6 +154,24 @@ Deno.serve(async (req) => {
           if (jsonMatch) {
             const parsed = JSON.parse(jsonMatch[0])
             const candidate = parsed.days
+
+            // 디버깅용: Solar가 준 일별 분배가 검증을 통과하는지 항목별로 기록 (민감정보 없음)
+            const isArr = Array.isArray(candidate)
+            const lengthOk = isArr && candidate.length === totalDays
+            const shapeOk = isArr && candidate.every((d: any, i: number) =>
+              d.date === expectedDates[i] && Number.isInteger(d.target_amount) && d.target_amount >= 0
+            )
+            const sum = isArr ? candidate.reduce((s: number, d: any) => s + (typeof d?.target_amount === 'number' ? d.target_amount : 0), 0) : null
+            const maxMinDiff = isArr ? Math.max(...candidate.map((d: any) => d.target_amount)) - Math.min(...candidate.map((d: any) => d.target_amount)) : null
+            console.log('generate-plan solar days check:', {
+              isArr, lengthOk, shapeOk, sum, expectedSum: total_amount, maxMinDiff,
+              amounts: isArr ? candidate.map((d: any) => d.target_amount) : null,
+            })
+            console.log('generate-plan solar comment check:', {
+              hasComment: typeof parsed.comment === 'string',
+              commentLength: typeof parsed.comment === 'string' ? parsed.comment.trim().length : null,
+              commentPreview: typeof parsed.comment === 'string' ? parsed.comment.slice(0, 50) : null,
+            })
             if (
               Array.isArray(candidate) &&
               candidate.length === totalDays &&
@@ -195,6 +213,8 @@ Deno.serve(async (req) => {
       days = fallbackDays(start_date, end_date, total_amount)
       aiComment = null // fallback 시 재생성 이전의 오래된 코멘트가 남지 않도록 초기화
     }
+    // 디버깅용: 최종적으로 Solar가 쓰였는지 수학 계산이 쓰였는지, 코멘트가 저장되는지 기록
+    console.log('generate-plan final result:', { generatedBy, aiCommentSaved: aiComment !== null })
 
     const rows = days.map((d) => ({
       plan_id,
