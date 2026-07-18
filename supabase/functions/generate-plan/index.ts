@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
 
 목표: ${title}
 기간: ${start_date} ~ ${end_date} (총 ${totalDays}일)
-하루 학습 가능 시간: ${daily_minutes}분
+하루 학습 가능 시간: ${daily_minutes}분 (기간 내 모든 날짜에 동일하게 적용되는 값이며, 날짜별로 다른 값이 아니다)
 학습 단위: ${unit}
 전체 학습량: ${total_amount}${unit}
 
@@ -135,9 +135,9 @@ Deno.serve(async (req) => {
 - ${start_date}부터 ${end_date}까지 총 ${totalDays}개의 날짜를 모두 포함
 - target_amount의 합이 정확히 ${total_amount}
 - min_amount = max(1, ceil(target_amount × 0.2))
-- 학습 가능 시간(${daily_minutes}분)에 비례해 분배 (짧은 날은 적게)
+- target_amount 계산 방법(반드시 이 규칙대로 계산할 것): base = ${total_amount} ÷ ${totalDays}를 버림한 값, extra = ${total_amount} - base × ${totalDays}. 날짜 순서대로 앞에서부터 extra개 날짜는 (base+1), 나머지는 base로 배정한다. 하루 학습 가능 시간이 모든 날짜에 동일하므로 이 규칙에 예외는 없다
 - 정수만 사용
-- comment: 위 분배를 어떻게, 왜 그렇게 했는지 한국어 존댓말 한 문장(30~120자)으로 다정하고 담백하게 설명. 사용자를 압박하는 표현이나 "밀렸다", "실패" 같은 단어는 쓰지 않고, 이모지도 쓰지 않는다.
+- comment: 위 분배를 어떻게, 왜 그렇게 했는지 한국어 존댓말 한 문장(30~120자)으로 다정하고 담백하게 설명. 사용자를 압박하는 표현이나 "밀렸다", "실패" 같은 단어는 쓰지 않고, 이모지도 쓰지 않는다. 하루 학습 가능 시간은 모든 날짜에 동일하므로, "날짜마다 학습 가능 시간을 고려했다"처럼 날짜별로 다른 시간을 고려한 듯한 표현은 절대 쓰지 않는다.
 
 응답 형식(JSON만):
 {"days":[{"date":"YYYY-MM-DD","target_amount":숫자,"min_amount":숫자}],"comment":"한 줄 코멘트"}`,
@@ -161,7 +161,10 @@ Deno.serve(async (req) => {
                 d.date === expectedDates[i] &&                      // 날짜열이 start~end와 정확히 일치
                 Number.isInteger(d.target_amount) && d.target_amount >= 0
               ) &&
-              candidate.reduce((s: number, d: any) => s + d.target_amount, 0) === total_amount
+              candidate.reduce((s: number, d: any) => s + d.target_amount, 0) === total_amount &&
+              // 하루 학습 가능 시간은 모든 날짜에 동일하므로, 근거 없이 튀는 불균등 분배는 무효 처리
+              (Math.max(...candidate.map((d: any) => d.target_amount)) -
+                Math.min(...candidate.map((d: any) => d.target_amount))) <= 1
             ) {
               // min_amount는 신뢰하지 않고 서버에서 재계산, 0-target 날은 생략
               days = candidate
