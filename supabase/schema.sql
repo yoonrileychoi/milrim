@@ -26,6 +26,11 @@ CREATE POLICY "본인 프로필 수정" ON public.milrim_profiles
   FOR UPDATE USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
+-- 관리자 전체 조회 (읽기 전용). 상세·배경은 migrations/2026-07-23_admin_rls_policies.sql
+CREATE POLICY "관리자 전체 프로필 조회" ON public.milrim_profiles
+  FOR SELECT TO authenticated
+  USING (auth.jwt() -> 'app_metadata' ->> 'milrim_role' = 'admin');
+
 -- ============================================================
 -- 2. milrim_plans (학습 목표/계획)
 -- ============================================================
@@ -60,6 +65,11 @@ CREATE POLICY "본인 플랜 수정" ON public.milrim_plans
 
 CREATE POLICY "본인 플랜 삭제" ON public.milrim_plans
   FOR DELETE USING (auth.uid() = user_id);
+
+-- 관리자 전체 조회 (읽기 전용). 상세·배경은 migrations/2026-07-23_admin_rls_policies.sql
+CREATE POLICY "관리자 전체 플랜 조회" ON public.milrim_plans
+  FOR SELECT TO authenticated
+  USING (auth.jwt() -> 'app_metadata' ->> 'milrim_role' = 'admin');
 
 -- ============================================================
 -- 3. milrim_plan_days (AI가 생성하는 일별 계획)
@@ -122,6 +132,11 @@ CREATE POLICY "본인 학습 세션 생성" ON public.milrim_study_sessions
 CREATE POLICY "본인 학습 세션 수정" ON public.milrim_study_sessions
   FOR UPDATE USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+-- 관리자 전체 조회 (읽기 전용). 상세·배경은 migrations/2026-07-23_admin_rls_policies.sql
+CREATE POLICY "관리자 전체 세션 조회" ON public.milrim_study_sessions
+  FOR SELECT TO authenticated
+  USING (auth.jwt() -> 'app_metadata' ->> 'milrim_role' = 'admin');
 
 -- ============================================================
 -- 5. milrim_daily_messages (Solar 일일 코치 메시지)

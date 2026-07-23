@@ -325,6 +325,11 @@ export default function HomePage() {
               <div style={{ fontSize: 15, color: 'var(--primary)', lineHeight: 1.65, fontWeight: 600 }}>
                 {coachMessage}
               </div>
+              {coachIsAi && (
+                <div style={{ textAlign: 'right', fontSize: 10.5, color: 'var(--primary)', opacity: 0.55, letterSpacing: 0.3 }}>
+                  Powered by Solar
+                </div>
+              )}
               {mostOverdue && (
                 <button
                   onClick={() => navigate('/replan', { state: { planId: mostOverdue.id } })}

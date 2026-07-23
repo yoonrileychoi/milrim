@@ -33,6 +33,21 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
+    // 이 Supabase 프로젝트는 여러 사이트가 공유한다. auth.users 행을 지우면 같은
+    // 계정으로 쓰던 다른 사이트 데이터까지 CASCADE로 삭제되므로, MILRIM 사용자
+    // (milrim_profiles 보유자)일 때만 탈퇴를 허용한다. 아니면 거절한다.
+    const { data: ownProfile, error: profileError } = await adminClient
+      .from('milrim_profiles')
+      .select('id')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (profileError) {
+      return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500, headers: corsHeaders })
+    }
+    if (!ownProfile) {
+      return new Response(JSON.stringify({ error: 'Not a MILRIM user' }), { status: 404, headers: corsHeaders })
+    }
+
     const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id)
     if (deleteError) {
       return new Response(JSON.stringify({ error: deleteError.message }), { status: 400, headers: corsHeaders })

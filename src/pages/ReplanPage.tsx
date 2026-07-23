@@ -98,6 +98,12 @@ export default function ReplanPage() {
       <div style={{ fontSize: 13.5, color: '#C2E098', marginTop: 14, textAlign: 'center', lineHeight: 1.6 }}>
         밀린 학습량을 남은 기간에<br />다시 배분하는 중이에요
       </div>
+      <div style={{
+        position: 'fixed', bottom: 28, left: 0, right: 0, textAlign: 'center',
+        fontSize: 11.5, color: 'rgba(255,255,255,0.45)', letterSpacing: 0.4,
+      }}>
+        Powered by Solar
+      </div>
     </div>
   )
 }
