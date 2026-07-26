@@ -47,6 +47,9 @@ CREATE TABLE IF NOT EXISTS public.milrim_plans (
   replan_count   INT         NOT NULL DEFAULT 0 CHECK (replan_count >= 0),
   ai_strategy    TEXT,
   generated_by   TEXT        CHECK (generated_by IS NULL OR generated_by IN ('solar', 'fallback')),
+  -- 분배 방식·코멘트 출처 (migrations/2026-07-26_distribution_pattern.sql)
+  distribution_pattern TEXT  NOT NULL DEFAULT 'even' CHECK (distribution_pattern IN ('front', 'back', 'even')),
+  ai_comment_by  TEXT        CHECK (ai_comment_by IS NULL OR ai_comment_by IN ('solar', 'fallback')),
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

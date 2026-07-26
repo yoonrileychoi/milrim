@@ -16,6 +16,8 @@ type Plan = {
   replan_count: number
   status: 'active' | 'completed'
   ai_strategy: string | null
+  ai_comment_by: 'solar' | 'fallback' | null
+  distribution_pattern: 'even' | 'front' | 'back'
 }
 
 type PlanDay = {
@@ -152,25 +154,30 @@ export default function PlanDetailPage() {
           </div>
         </div>
 
-        {/* AI 재계획 한줄 코멘트 */}
-        {plan.ai_strategy && (
-          <div style={{
-            display: 'flex', alignItems: 'flex-start', gap: 10,
-            background: '#F1F7E8', border: '1px solid #DDE8CE', borderRadius: 14,
-            padding: '13px 16px', marginTop: 14,
-          }}>
-            <span className="ms" style={{ fontSize: 18, color: '#6B9C4A', flexShrink: 0, marginTop: 1 }}>auto_awesome</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, color: '#3E5A2E', lineHeight: 1.55 }}>
-                <span style={{ fontWeight: 700 }}>AI 메이트의 한 마디: </span>
-                {plan.ai_strategy}
-              </div>
-              <div style={{ fontSize: 10.5, color: '#9CB088', textAlign: 'right', marginTop: 4 }}>
-                Powered by Solar
+        {/* 한줄 코멘트 — Solar가 실제로 쓴 경우에만 "AI 메이트/Powered by Solar" 표기(표기·구현 일치) */}
+        {plan.ai_strategy && (() => {
+          const isAi = plan.ai_comment_by !== 'fallback' // null(과거 행·재계획)·'solar'는 AI로 취급
+          return (
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: 10,
+              background: '#F1F7E8', border: '1px solid #DDE8CE', borderRadius: 14,
+              padding: '13px 16px', marginTop: 14,
+            }}>
+              <span className="ms" style={{ fontSize: 18, color: '#6B9C4A', flexShrink: 0, marginTop: 1 }}>{isAi ? 'auto_awesome' : 'eco'}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, color: '#3E5A2E', lineHeight: 1.55 }}>
+                  {isAi && <span style={{ fontWeight: 700 }}>AI 메이트의 한 마디: </span>}
+                  {plan.ai_strategy}
+                </div>
+                {isAi && (
+                  <div style={{ fontSize: 10.5, color: '#9CB088', textAlign: 'right', marginTop: 4 }}>
+                    Powered by Solar
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* daily tasks */}
         <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2A26', margin: '20px 2px 11px' }}>일자별 계획</div>
@@ -234,7 +241,7 @@ export default function PlanDetailPage() {
 
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           <button
-            onClick={() => navigate('/plan/new', { state: { planId: plan.id, title: plan.title, startDate: plan.start_date, endDate: plan.end_date, dailyMinutes: plan.daily_minutes, unit: plan.unit, totalAmount: plan.total_amount } })}
+            onClick={() => navigate('/plan/new', { state: { planId: plan.id, title: plan.title, startDate: plan.start_date, endDate: plan.end_date, dailyMinutes: plan.daily_minutes, unit: plan.unit, totalAmount: plan.total_amount, distribution: plan.distribution_pattern } })}
             style={{ flex: 1, border: '1px solid #2E5A3A', background: '#fff', color: '#2E5A3A', fontSize: 14, fontWeight: 700, padding: 14, borderRadius: 14, fontFamily: 'var(--font)', cursor: 'pointer' }}
           >
             계획 수정

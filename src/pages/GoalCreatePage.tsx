@@ -6,6 +6,13 @@ import { todayStr, toDateStr } from '../lib/date'
 
 const unitOptions = ['페이지', '문제', '강의', '시간', '기타']
 
+type Distribution = 'even' | 'front' | 'back'
+const distributionOptions: { value: Distribution; label: string; desc: string }[] = [
+  { value: 'even', label: '고르게 (기본)', desc: '매일 비슷한 분량으로 나눠요' },
+  { value: 'front', label: '초반집중', desc: '앞쪽을 더 많이, 뒤로 갈수록 가볍게' },
+  { value: 'back', label: '후반집중', desc: '가볍게 시작해 뒤로 갈수록 늘려서' },
+]
+
 const timeOptions = [
   { label: '30분', value: 30 },
   { label: '1시간', value: 60 },
@@ -29,6 +36,7 @@ interface EditState {
   dailyMinutes?: number
   unit?: string
   totalAmount?: number
+  distribution?: Distribution
 }
 
 export default function GoalCreatePage() {
@@ -47,6 +55,7 @@ export default function GoalCreatePage() {
   const [dailyMinutes, setDailyMinutes] = useState(nearestTime(edit.dailyMinutes))
   const [selectedUnit, setSelectedUnit] = useState(edit.unit || '페이지')
   const [totalAmount, setTotalAmount] = useState(edit.totalAmount?.toString() || '')
+  const [distribution, setDistribution] = useState<Distribution>(edit.distribution || 'even')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -70,12 +79,13 @@ export default function GoalCreatePage() {
       daily_minutes: dailyMinutes,
       unit: selectedUnit,
       total_amount: parseInt(totalAmount),
+      distribution_pattern: distribution,
     }
 
     if (isEdit) {
       const { error: err } = await supabase.from('milrim_plans').update(planData).eq('id', edit.planId!)
       if (err) { setError('저장에 실패했어요. 다시 시도해주세요.'); setLoading(false); return }
-      navigate('/plan/ai-loading', { state: { planId: edit.planId, ...planData, dailyMinutes: planData.daily_minutes, startDate: planData.start_date, endDate: planData.end_date, totalAmount: planData.total_amount } })
+      navigate('/plan/ai-loading', { state: { planId: edit.planId, ...planData, dailyMinutes: planData.daily_minutes, startDate: planData.start_date, endDate: planData.end_date, totalAmount: planData.total_amount, distribution } })
       return
     }
 
@@ -100,6 +110,7 @@ export default function GoalCreatePage() {
         dailyMinutes,
         unit: selectedUnit,
         totalAmount: parseInt(totalAmount),
+        distribution,
       },
     })
   }
@@ -211,7 +222,7 @@ export default function GoalCreatePage() {
         </div>
 
         {/* 전체 학습량 */}
-        <div style={{ marginBottom: 28 }}>
+        <div style={{ marginBottom: 22 }}>
           <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>전체 학습량은 얼마인가요?</div>
           <div style={{
             background: '#fff', border: '1px solid #E2DCCB', borderRadius: 14,
@@ -226,6 +237,37 @@ export default function GoalCreatePage() {
               style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font)', fontSize: 19, fontWeight: 800, color: '#2B2A26', width: 80 }}
             />
             {selectedUnit !== '기타' && <span style={{ fontSize: 14, color: '#847f6f' }}>{selectedUnit}</span>}
+          </div>
+        </div>
+
+        {/* 학습량 배분 방식 */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>학습량을 어떻게 나눌까요?</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {distributionOptions.map(o => {
+              const selected = distribution === o.value
+              return (
+                <div
+                  key={o.value}
+                  onClick={() => setDistribution(o.value)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
+                    borderRadius: 13, padding: '13px 15px',
+                    border: selected ? '1.5px solid #2E5A3A' : '1px solid #E2DCCB',
+                    background: selected ? '#F0F5E6' : '#fff',
+                  }}
+                >
+                  <span
+                    className="ms"
+                    style={{ fontSize: 20, color: selected ? '#2E5A3A' : '#c2bba8', flexShrink: 0 }}
+                  >{selected ? 'radio_button_checked' : 'radio_button_unchecked'}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: selected ? '#2E5A3A' : '#2B2A26' }}>{o.label}</div>
+                    <div style={{ fontSize: 11.5, color: '#847f6f', marginTop: 2 }}>{o.desc}</div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
 

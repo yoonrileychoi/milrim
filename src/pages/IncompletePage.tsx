@@ -13,7 +13,10 @@ export default function IncompletePage() {
   const { state } = useLocation()
   const { planId, planDayId } = (state ?? {}) as IncompleteState
 
-  const [plan, setPlan] = useState<{ title: string; end_date: string; unit: string } | null>(null)
+  const [plan, setPlan] = useState<{
+    title: string; start_date: string; end_date: string; unit: string
+    daily_minutes: number; total_amount: number; distribution_pattern: 'even' | 'front' | 'back'
+  } | null>(null)
   const [todayTarget, setTodayTarget] = useState<number>(0)
   const [remainingDays, setRemainingDays] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -22,7 +25,7 @@ export default function IncompletePage() {
     if (!planId || !planDayId) { setLoading(false); return }
     const today = todayStr()
     Promise.all([
-      supabase.from('milrim_plans').select('title, end_date, unit').eq('id', planId).single(),
+      supabase.from('milrim_plans').select('title, start_date, end_date, unit, daily_minutes, total_amount, distribution_pattern').eq('id', planId).single(),
       supabase.from('milrim_plan_days').select('target_amount').eq('id', planDayId).single(),
     ]).then(([{ data: planData }, { data: dayData }]) => {
       if (planData) {
@@ -88,7 +91,16 @@ export default function IncompletePage() {
               목표일이 오늘이라 재분배할 남은 날이 없어요.<br />기간을 수정해 다시 도전해보세요.
             </div>
             <button
-              onClick={() => navigate(`/plan/${planId}`)}
+              onClick={() => plan && navigate('/plan/new', { state: {
+                planId,
+                title: plan.title,
+                startDate: plan.start_date,
+                endDate: plan.end_date,
+                dailyMinutes: plan.daily_minutes,
+                unit: plan.unit,
+                totalAmount: plan.total_amount,
+                distribution: plan.distribution_pattern,
+              } })}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 border: 'none', background: '#2E5A3A', color: '#fff',

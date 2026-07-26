@@ -12,13 +12,14 @@ interface PlanState {
   dailyMinutes?: number
   unit?: string
   totalAmount?: number
+  distribution?: 'even' | 'front' | 'back'
 }
 
 export default function AiLoadingPage() {
   const navigate = useNavigate()
   const { state } = useLocation()
   const { user } = useAuth()
-  const { planId, title, startDate, endDate, dailyMinutes, unit, totalAmount } = (state ?? {}) as PlanState
+  const { planId, title, startDate, endDate, dailyMinutes, unit, totalAmount, distribution } = (state ?? {}) as PlanState
   const called = useRef(false)
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function AiLoadingPage() {
               plan_id: planId, title,
               start_date: startDate, end_date: endDate,
               daily_minutes: dailyMinutes, unit, total_amount: totalAmount,
+              distribution_pattern: distribution ?? 'even',
             }),
           }
         )
