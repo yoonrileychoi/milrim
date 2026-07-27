@@ -83,12 +83,16 @@ export default function HomePage() {
     const key = `milrim_last_visit_${user.id}`
     const prev = localStorage.getItem(key)
     localStorage.setItem(key, today)
-    if (prev && diffDays(today, prev) >= 3) {
-      setShowComeback(true)
-      const t = setTimeout(() => setShowComeback(false), 6000)
-      return () => clearTimeout(t)
-    }
+    if (prev && diffDays(today, prev) >= 3) setShowComeback(true)
   }, [user, today])
+
+  // 토스트 자동 닫기 — 위 effect에 두면 user 객체가 갱신될 때 cleanup이 타이머를 지워버려
+  // (재실행 시엔 이미 오늘 날짜가 저장돼 있어 새 타이머도 안 걸린다) 토스트가 영영 남는다.
+  useEffect(() => {
+    if (!showComeback) return
+    const t = setTimeout(() => setShowComeback(false), 6000)
+    return () => clearTimeout(t)
+  }, [showComeback])
 
   useEffect(() => {
     if (!user) return

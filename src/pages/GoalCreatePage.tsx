@@ -271,6 +271,20 @@ export default function GoalCreatePage() {
           </div>
         </div>
 
+        {/* 수정 모드 안내 — 재생성해도 완료 기록은 보존된다는 사실을 알린다 */}
+        {isEdit && (
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10,
+            background: '#F1F7E8', border: '1px solid #DDE8CE', borderRadius: 13,
+            padding: '13px 15px', marginBottom: 16,
+          }}>
+            <span className="ms" style={{ fontSize: 18, color: '#6B9C4A', flexShrink: 0, marginTop: 1 }}>eco</span>
+            <div style={{ fontSize: 12.5, color: '#3E5A2E', lineHeight: 1.55 }}>
+              기존 학습 기록은 그대로 유지돼요. 남은 학습량만 새로 계획됩니다.
+            </div>
+          </div>
+        )}
+
         {error && (
           <div style={{ textAlign: 'center', fontSize: 13, color: '#B5524A', marginBottom: 12 }}>{error}</div>
         )}

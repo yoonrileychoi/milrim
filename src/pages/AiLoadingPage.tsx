@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { distributeDays } from '../lib/distribute'
+import { datesBetween, distributeOverDates } from '../lib/distribute'
 
 interface PlanState {
   planId?: string
@@ -53,10 +53,26 @@ export default function AiLoadingPage() {
         if (res.ok) success = true
       } catch (_) {}
 
-      // Edge Function 실패 시 브라우저에서 직접 수학적 분배
+      // Edge Function 실패 시 브라우저에서 직접 수학적 분배.
+      // Edge Function과 동일하게, 결과가 기록된 날(완료·미완료)은 보존하고
+      // 남은 학습량만 빈 날짜에 다시 나눈다 — 계획을 수정해도 완료 기록이 사라지지 않도록.
       if (!success) {
-        await supabase.from('milrim_plan_days').delete().eq('plan_id', planId)
-        const rows = distributeDays(startDate, endDate, totalAmount).map(d => ({
+        const { data: existing } = await supabase
+          .from('milrim_plan_days')
+          .select('date, status, actual_amount')
+          .eq('plan_id', planId)
+          .neq('status', 'pending')
+
+        const kept = existing ?? []
+        const keptDates = new Set(kept.map(d => d.date))
+        const completedAmount = kept
+          .filter(d => d.status === 'complete')
+          .reduce((sum, d) => sum + (d.actual_amount ?? 0), 0)
+        const remaining = Math.max(0, totalAmount - completedAmount)
+        const openDates = datesBetween(startDate, endDate).filter(d => !keptDates.has(d))
+
+        await supabase.from('milrim_plan_days').delete().eq('plan_id', planId).eq('status', 'pending')
+        const rows = distributeOverDates(openDates, remaining).map(d => ({
           ...d, plan_id: planId, user_id: userId, study_seconds: 0,
         }))
         if (rows.length > 0) await supabase.from('milrim_plan_days').insert(rows)
