@@ -9,12 +9,23 @@ interface ReplanState {
   planId?: string
 }
 
+// Edge Function을 못 부를 때 브라우저가 직접 균등 재분배하는 경로에서 쓰는 코멘트.
+// 균등 분배이므로 배분 방식(초반/후반집중)을 주장하지 않는 중립 문구를 쓴다.
+const FALLBACK_COMMENT = '목표일은 그대로 두고, 남은 학습량을 남은 기간에 다시 나눴어요.'
+
 export default function ReplanPage() {
   const navigate = useNavigate()
   const { state } = useLocation()
   const { planId } = (state ?? {}) as ReplanState
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const called = useRef(false)
+
+  // 새로고침하면 planId(화면 간 전달값)가 사라져 재계획이 시작조차 못 하고 스피너만 돈다.
+  // 그럴 땐 무한 대기 대신 계획 목록으로 돌려보낸다.
+  useEffect(() => {
+    if (authLoading || called.current) return
+    if (!planId) navigate('/plan', { replace: true })
+  }, [authLoading, planId, navigate])
 
   useEffect(() => {
     if (!planId || !user || called.current) return
@@ -69,7 +80,10 @@ export default function ReplanPage() {
           supabase.from('milrim_plans').update({
             replan_count: (plan.replan_count ?? 0) + 1,
             generated_by: 'fallback',
-            ai_strategy: null,
+            // 코멘트는 항상 떠야 하므로 비우지 않는다(예전엔 null이라 카드가 통째로 사라졌다).
+            // 이 경로는 균등 분배라 배분 방식을 주장하지 않는 문구를 쓰고, 배지는 숨긴다.
+            ai_strategy: FALLBACK_COMMENT,
+            ai_comment_by: 'fallback',
           }).eq('id', planId),
         ])
       }

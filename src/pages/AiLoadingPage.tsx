@@ -4,6 +4,10 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { datesBetween, distributeOverDates } from '../lib/distribute'
 
+// Edge Function을 못 부를 때 브라우저가 직접 균등 분배하는 경로에서 쓰는 코멘트.
+// 균등 분배이므로 배분 방식(초반/후반집중)을 주장하지 않는 중립 문구를 쓴다.
+const FALLBACK_COMMENT = '매일 비슷한 분량으로 고르게 나눠봤어요. 꾸준함이 가장 큰 힘이 돼요.'
+
 interface PlanState {
   planId?: string
   title?: string
@@ -18,9 +22,19 @@ interface PlanState {
 export default function AiLoadingPage() {
   const navigate = useNavigate()
   const { state } = useLocation()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const { planId, title, startDate, endDate, dailyMinutes, unit, totalAmount, distribution } = (state ?? {}) as PlanState
   const called = useRef(false)
+
+  // 이 화면은 계획 정보를 화면 간 전달값(state)으로만 받는다. 새로고침하면 그 값이 사라져
+  // 아래 생성 로직이 시작조차 못 하고 스피너만 영원히 돈다. 그럴 땐 계획 화면으로 돌려보낸다.
+  // (계획 자체는 이미 DB에 저장돼 있으므로 사용자는 거기서 이어갈 수 있다)
+  useEffect(() => {
+    if (authLoading || called.current) return
+    if (!planId || !startDate || !endDate || !totalAmount) {
+      navigate(planId ? `/plan/${planId}` : '/plan', { replace: true })
+    }
+  }, [authLoading, planId, startDate, endDate, totalAmount, navigate])
 
   useEffect(() => {
     if (!planId || !startDate || !endDate || !totalAmount || !user || called.current) return
@@ -76,7 +90,14 @@ export default function AiLoadingPage() {
           ...d, plan_id: planId, user_id: userId, study_seconds: 0,
         }))
         if (rows.length > 0) await supabase.from('milrim_plan_days').insert(rows)
-        await supabase.from('milrim_plans').update({ generated_by: 'fallback' }).eq('id', planId)
+        // 코멘트도 함께 채운다 — 비워두면 "AI 메이트의 한 마디" 카드가 사라지고,
+        // 재생성인 경우엔 예전 코멘트가 새 숫자 위에 그대로 남는다.
+        // 이 경로는 균등 분배라 배분 방식을 주장하지 않는 문구를 쓰고, 배지는 숨긴다.
+        await supabase.from('milrim_plans').update({
+          generated_by: 'fallback',
+          ai_strategy: FALLBACK_COMMENT,
+          ai_comment_by: 'fallback',
+        }).eq('id', planId)
       }
     }
 

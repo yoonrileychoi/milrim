@@ -232,6 +232,9 @@ export default function GoalCreatePage() {
               type="number"
               value={totalAmount}
               onChange={e => setTotalAmount(e.target.value)}
+              // type=number 칸은 커서가 올라간 상태로 마우스 휠을 굴리면 값이 바뀐다.
+              // 아래 항목을 고르려고 스크롤하다 학습량이 조용히 ±1 되는 일이 생기므로 막는다.
+              onWheel={e => e.currentTarget.blur()}
               min={1}
               placeholder="0"
               style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font)', fontSize: 19, fontWeight: 800, color: '#2B2A26', width: 80 }}
