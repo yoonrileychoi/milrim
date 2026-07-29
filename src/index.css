@@ -190,3 +190,17 @@ body {
 
 .fade-in { animation: dfade 0.4s ease; }
 .pop-in { animation: dpop 0.3s ease; }
+
+/* 홈 "오늘 할 일" 목록 — 데스크톱은 4개, 모바일(1000px 미만, 기존 레이아웃 전환 기준과 동일)은
+   2개까지만 보이고 나머지는 세로 스크롤로 본다. 실제 렌더링 항목 자체도 최대 10개로 제한한다
+   (HomePage.tsx에서 slice(0, 10)). 항목 높이는 패딩 13px×2 + 본문 2줄(제목·목표량) 기준 추정치라
+   내용이 길어 두 줄을 넘기면 실제로는 4개/2개보다 살짝 적게 보일 수 있다. */
+.today-tasks-scroll {
+  max-height: 296px;
+  overflow-y: auto;
+}
+@media (max-width: 999px) {
+  .today-tasks-scroll {
+    max-height: 148px;
+  }
+}

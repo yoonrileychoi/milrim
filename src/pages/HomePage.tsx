@@ -268,8 +268,8 @@ export default function HomePage() {
                   오늘 일정이 없어요
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {todayTasks.map(g => {
+                <div className="today-tasks-scroll" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {todayTasks.slice(0, 10).map(g => {
                     const done = g.todayDay?.status === 'complete'
                     return (
                       <div key={g.id} style={{
