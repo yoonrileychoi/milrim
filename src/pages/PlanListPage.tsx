@@ -117,7 +117,21 @@ export default function PlanListPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2A26', marginBottom: 14 }}>달성 중인 계획</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2A26' }}>달성 중인 계획</div>
+              <button
+                onClick={() => navigate('/plan/new')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  border: 'none', background: 'var(--primary)', color: '#fff',
+                  fontSize: 13, fontWeight: 700, padding: '9px 16px', borderRadius: 10,
+                  fontFamily: 'var(--font)', cursor: 'pointer', flexShrink: 0,
+                }}
+              >
+                <span className="ms" style={{ fontSize: 17 }}>add</span>
+                새 계획 추가
+              </button>
+            </div>
             <div className="plan-grid-ongoing">
               {ongoingPlans.map(renderCard)}
               <div
