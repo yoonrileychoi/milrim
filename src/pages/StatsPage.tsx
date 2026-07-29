@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Layout from '../components/Layout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -48,6 +48,8 @@ export default function StatsPage() {
   const [secondsByDate, setSecondsByDate] = useState<Map<string, number>>(new Map())
   const [planProgress, setPlanProgress] = useState<PlanProgress[]>([])
   const [loading, setLoading] = useState(true)
+  const progressListRef = useRef<HTMLDivElement>(null)
+  const [progressMaxHeight, setProgressMaxHeight] = useState<number>()
 
   useEffect(() => {
     if (!user) return
@@ -90,6 +92,25 @@ export default function StatsPage() {
     }
     fetchStats()
   }, [user?.id])
+
+  // "목표별 진행률" 목록을 데스크톱 3개·모바일 2개까지만 보이게 자른다.
+  // 항목 높이를 추측해서 max-height를 고정값으로 넣었더니 폰트 렌더링 오차로 다음 항목의
+  // 제목만 살짝 걸쳐 보이는 문제가 있었다 — 그래서 실제 DOM에 그려진 항목의 위치를 직접
+  // 측정해서(추측 없이) 정확히 N개째 항목의 바로 아래에서 잘리도록 계산한다.
+  useEffect(() => {
+    const recompute = () => {
+      const container = progressListRef.current
+      if (!container || container.children.length === 0) { setProgressMaxHeight(undefined); return }
+      const n = window.innerWidth < 1000 ? 2 : 3
+      const items = Array.from(container.children) as HTMLElement[]
+      const lastVisible = items[Math.min(n, items.length) - 1]
+      const height = lastVisible.getBoundingClientRect().bottom - container.getBoundingClientRect().top + container.scrollTop
+      setProgressMaxHeight(height)
+    }
+    recompute()
+    window.addEventListener('resize', recompute)
+    return () => window.removeEventListener('resize', recompute)
+  }, [planProgress])
 
   const today = todayStr()
   const now = new Date(today + 'T00:00:00')
@@ -231,8 +252,15 @@ export default function StatsPage() {
             {planProgress.length > 0 && (
               <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: '22px 24px', marginTop: 16 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 18 }}>목표별 진행률</div>
-                {/* 4개 높이까지만 보이고 나머지는 스크롤 (항목 1개 ≈ 진행바 포함 48px + gap 16px) */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxHeight: 250, overflowY: 'auto', paddingRight: planProgress.length > 4 ? 10 : 0 }}>
+                {/* 데스크톱 3개·모바일 2개 높이까지만 보이고 나머지는 스크롤. 높이는 실제 렌더링된
+                    항목 위치를 측정해 계산한다(위 useEffect 참조) — 고정값 추측 아님. */}
+                <div
+                  ref={progressListRef}
+                  style={{
+                    display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto',
+                    maxHeight: progressMaxHeight, paddingRight: planProgress.length > 3 ? 10 : 0,
+                  }}
+                >
                   {planProgress.map(p => (
                     <div key={p.id}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 7 }}>

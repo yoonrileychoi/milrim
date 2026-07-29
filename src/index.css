@@ -204,3 +204,35 @@ body {
     max-height: 148px;
   }
 }
+
+/* 계획 목록(PlanListPage) "달성 중인 계획" — 데스크톱 한 줄 2개(2줄=4개 노출), 모바일은
+   한 줄 1개(카드가 꽉 차게, 2줄=2개 노출)로 하고 나머지는 세로 스크롤. 높이는 카드 2개 분량
+   (카드 1개 약 150px + 줄 간격 16px) 기준 추정치. */
+.plan-grid-ongoing {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-height: 316px;
+  overflow-y: auto;
+}
+@media (max-width: 999px) {
+  .plan-grid-ongoing {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+/* 데스크톱은 한 줄 2개(1줄=2개 노출), 모바일은 "달성 중인 계획"과 같은 형식으로
+   한 줄 1개(2줄=2개 노출)로 하고 나머지는 세로 스크롤. */
+.plan-grid-ended {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+@media (max-width: 999px) {
+  .plan-grid-ended {
+    grid-template-columns: repeat(1, 1fr);
+    max-height: 316px;
+  }
+}

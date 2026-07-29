@@ -52,7 +52,7 @@ export default function GoalCreatePage() {
   const [goalText, setGoalText] = useState(edit.title || '')
   const [startDate, setStartDate] = useState(edit.startDate || today)
   const [endDate, setEndDate] = useState(edit.endDate || '')
-  const [dailyMinutes, setDailyMinutes] = useState(nearestTime(edit.dailyMinutes))
+  const [dailyMinutes] = useState(nearestTime(edit.dailyMinutes))
   const [selectedUnit, setSelectedUnit] = useState(edit.unit || '페이지')
   const [totalAmount, setTotalAmount] = useState(edit.totalAmount?.toString() || '')
   const [distribution, setDistribution] = useState<Distribution>(edit.distribution || 'even')
@@ -180,26 +180,8 @@ export default function GoalCreatePage() {
           )}
         </div>
 
-        {/* 하루 학습 가능 시간 */}
-        <div style={{ marginBottom: 22 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#2B2A26', marginBottom: 9 }}>하루에 얼마나 공부할 수 있나요?</div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {timeOptions.map(t => (
-              <div
-                key={t.value}
-                onClick={() => setDailyMinutes(t.value)}
-                style={{
-                  flex: 1, textAlign: 'center', padding: '11px 0', borderRadius: 12, cursor: 'pointer',
-                  border: dailyMinutes === t.value ? '1.5px solid #2E5A3A' : '1px solid #E2DCCB',
-                  background: dailyMinutes === t.value ? '#F0F5E6' : '#fff',
-                  fontSize: 13, color: dailyMinutes === t.value ? '#2E5A3A' : '#847f6f',
-                  fontWeight: dailyMinutes === t.value ? 700 : 400,
-                  whiteSpace: 'nowrap',
-                }}
-              >{t.label}</div>
-            ))}
-          </div>
-        </div>
+        {/* 하루 학습 가능 시간 — 화면에서 숨김(사용자 요청). dailyMinutes 상태·제출 로직은
+            그대로 두고, 선택 UI만 렌더링하지 않는다(기존 값 또는 기본값 그대로 제출됨). */}
 
         {/* 학습 단위 */}
         <div style={{ marginBottom: 22 }}>

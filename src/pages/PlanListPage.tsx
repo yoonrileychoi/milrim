@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { todayStr } from '../lib/date'
 
 type Plan = {
   id: string
@@ -67,6 +68,46 @@ export default function PlanListPage() {
     return `남은 ${diff}일`
   }
 
+  const renderCard = (plan: Plan) => {
+    const isDone = plan.status === 'completed'
+    const remain = getRemain(plan.end_date, plan.status)
+    return (
+      <div
+        key={plan.id}
+        onClick={() => navigate(`/plan/${plan.id}`)}
+        style={{
+          background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: 22,
+          cursor: 'pointer', opacity: isDone ? 0.72 : 1,
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+          <div style={{ flex: 1, marginRight: 8 }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: isDone ? '#6B6757' : '#2B2A26', wordBreak: 'keep-all' }}>{plan.title}</div>
+            <div style={{ fontSize: 12, color: '#9a9482', marginTop: 4 }}>{fmt(plan.start_date)} ~ {fmt(plan.end_date)} · {remain}</div>
+          </div>
+          {isDone && <div style={{ fontSize: 14, fontWeight: 800, color: '#9CC36B', flexShrink: 0 }}>완료</div>}
+        </div>
+        <div style={{ height: 9, background: '#EDE7D7', borderRadius: 6, overflow: 'hidden' }}>
+          <div style={{
+            width: isDone ? '100%' : `${progressMap[plan.id] ?? 0}%`, height: '100%',
+            background: isDone ? '#9CC36B' : 'linear-gradient(90deg, #9CC36B, #2E5A3A)',
+            borderRadius: 6,
+          }} />
+        </div>
+        <div style={{ fontSize: 11.5, color: '#9a9482', marginTop: 10 }}>
+          총 {plan.total_amount}{plan.unit} · 재계획 {plan.replan_count}회 · {isDone ? 100 : (progressMap[plan.id] ?? 0)}%
+        </div>
+      </div>
+    )
+  }
+
+  // 목표 마감일(end_date) 기준으로 나눈다 — plan.status(완료 처리 여부)와는 별개 기준.
+  // 오늘 날짜는 KST 기준 문자열 비교로(new Date()/Date.now() 직접 비교 시 UTC 자정~오전9시
+  // 사이 하루 밀리는 버그가 재발할 수 있어, 이미 있는 todayStr() 유틸을 그대로 쓴다.
+  const today = todayStr()
+  const ongoingPlans = plans.filter(p => p.end_date >= today)
+  const endedPlans = plans.filter(p => p.end_date < today)
+
   return (
     <Layout title="나의 학습계획">
       {loading ? (
@@ -74,51 +115,33 @@ export default function PlanListPage() {
           <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #DDE8CE', borderTopColor: '#2E5A3A', animation: 'dspin 0.8s linear infinite' }} />
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
-          {plans.map(plan => {
-            const isDone = plan.status === 'completed'
-            const remain = getRemain(plan.end_date, plan.status)
-            return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2A26', marginBottom: 14 }}>달성 중인 계획</div>
+            <div className="plan-grid-ongoing">
+              {ongoingPlans.map(renderCard)}
               <div
-                key={plan.id}
-                onClick={() => navigate(`/plan/${plan.id}`)}
+                onClick={() => navigate('/plan/new')}
                 style={{
-                  background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: 22,
-                  cursor: 'pointer', opacity: isDone ? 0.72 : 1,
+                  border: '1.5px dashed #D8CFB8', borderRadius: 20, padding: 22,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  gap: 10, color: '#9a9482', cursor: 'pointer', minHeight: 150,
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                  <div style={{ flex: 1, marginRight: 8 }}>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: isDone ? '#6B6757' : '#2B2A26', wordBreak: 'keep-all' }}>{plan.title}</div>
-                    <div style={{ fontSize: 12, color: '#9a9482', marginTop: 4 }}>{fmt(plan.start_date)} ~ {fmt(plan.end_date)} · {remain}</div>
-                  </div>
-                  {isDone && <div style={{ fontSize: 14, fontWeight: 800, color: '#9CC36B', flexShrink: 0 }}>완료</div>}
-                </div>
-                <div style={{ height: 9, background: '#EDE7D7', borderRadius: 6, overflow: 'hidden' }}>
-                  <div style={{
-                    width: isDone ? '100%' : `${progressMap[plan.id] ?? 0}%`, height: '100%',
-                    background: isDone ? '#9CC36B' : 'linear-gradient(90deg, #9CC36B, #2E5A3A)',
-                    borderRadius: 6,
-                  }} />
-                </div>
-                <div style={{ fontSize: 11.5, color: '#9a9482', marginTop: 10 }}>
-                  총 {plan.total_amount}{plan.unit} · 재계획 {plan.replan_count}회 · {isDone ? 100 : (progressMap[plan.id] ?? 0)}%
-                </div>
+                <span className="ms" style={{ fontSize: 30 }}>add_circle</span>
+                <div style={{ fontSize: 13.5, fontWeight: 600 }}>새 계획 추가</div>
               </div>
-            )
-          })}
-
-          <div
-            onClick={() => navigate('/plan/new')}
-            style={{
-              border: '1.5px dashed #D8CFB8', borderRadius: 20, padding: 22,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 10, color: '#9a9482', cursor: 'pointer', minHeight: 150,
-            }}
-          >
-            <span className="ms" style={{ fontSize: 30 }}>add_circle</span>
-            <div style={{ fontSize: 13.5, fontWeight: 600 }}>새 계획 추가</div>
+            </div>
           </div>
+
+          {endedPlans.length > 0 && (
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2A26', marginBottom: 14 }}>달성 기간이 지난 계획</div>
+              <div className="plan-grid-ended">
+                {endedPlans.map(renderCard)}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </Layout>
