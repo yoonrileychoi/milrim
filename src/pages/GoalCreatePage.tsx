@@ -2,16 +2,17 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { todayStr, toDateStr } from '../lib/date'
+import { todayStr, toDateStr, dayCountInclusive } from '../lib/date'
+import { DISTRIBUTION_LABELS, type Distribution } from '../lib/distribute'
 
 const unitOptions = ['페이지', '문제', '강의', '시간', '기타']
 
-type Distribution = 'even' | 'front' | 'back'
-const distributionOptions: { value: Distribution; label: string; desc: string }[] = [
-  { value: 'even', label: '고르게 (기본)', desc: '매일 비슷한 분량으로 나눠요' },
-  { value: 'front', label: '초반집중', desc: '앞쪽을 더 많이, 뒤로 갈수록 가볍게' },
-  { value: 'back', label: '후반집중', desc: '가볍게 시작해 뒤로 갈수록 늘려서' },
-]
+const distributionOptions: { value: Distribution; label: string; desc: string }[] =
+  (['even', 'front', 'back'] as Distribution[]).map(value => ({
+    value,
+    label: DISTRIBUTION_LABELS[value].label,
+    desc: DISTRIBUTION_LABELS[value].desc,
+  }))
 
 const timeOptions = [
   { label: '30분', value: 30 },
@@ -59,9 +60,7 @@ export default function GoalCreatePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const dayCount = startDate && endDate
-    ? Math.max(0, Math.round((new Date(endDate + 'T00:00:00').getTime() - new Date(startDate + 'T00:00:00').getTime()) / 86400000) + 1)
-    : 0
+  const dayCount = dayCountInclusive(startDate, endDate)
 
   const handleSubmit = async () => {
     if (!goalText.trim()) return setError('목표명을 입력해주세요.')
@@ -176,7 +175,7 @@ export default function GoalCreatePage() {
             </div>
           </div>
           {dayCount > 0 && (
-            <div style={{ fontSize: 11.5, color: '#2E5A3A', marginTop: 6, fontWeight: 500 }}>총 {dayCount}일 동안 학습해요</div>
+            <div style={{ fontSize: 13.5, color: '#2E5A3A', marginTop: 6, fontWeight: 700 }}>총 {dayCount}일 동안 학습해요</div>
           )}
         </div>
 

@@ -6,6 +6,21 @@ export interface DayAlloc {
   min_amount: number
 }
 
+/** 학습량 배분 방식 (milrim_plans.distribution_pattern) */
+export type Distribution = 'even' | 'front' | 'back'
+
+/**
+ * 배분 방식의 화면 표기.
+ * 계획 생성 화면(선택지)과 계획 상세 화면(결과 표시)이 같은 이름을 쓰도록 여기 모아둔다.
+ * - label: 선택지에 쓰는 짧은 이름
+ * - resultLabel: 이미 정해진 계획을 설명할 때 쓰는 이름
+ */
+export const DISTRIBUTION_LABELS: Record<Distribution, { label: string; resultLabel: string; desc: string }> = {
+  even: { label: '고르게 (기본)', resultLabel: '고르게', desc: '매일 비슷한 분량으로 나눠요' },
+  front: { label: '초반집중', resultLabel: '초반 집중형', desc: '앞쪽을 더 많이, 뒤로 갈수록 가볍게' },
+  back: { label: '후반집중', resultLabel: '후반 집중형', desc: '가볍게 시작해 뒤로 갈수록 늘려서' },
+}
+
 /**
  * startDate~endDate에 totalAmount를 균등 분배한다.
  * - base + extra 방식: 합계가 정확히 totalAmount

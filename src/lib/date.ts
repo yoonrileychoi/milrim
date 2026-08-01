@@ -24,3 +24,12 @@ export function diffDays(a: string, b: string): number {
     (new Date(a + 'T00:00:00').getTime() - new Date(b + 'T00:00:00').getTime()) / 86400000
   )
 }
+
+/**
+ * 시작일~종료일이 며칠짜리인지 (양쪽 날짜 모두 포함).
+ * 예: 8/2~8/8 → 7일. 계획 생성 화면과 계획 상세 화면이 같은 값을 쓰도록 여기 둔다.
+ */
+export function dayCountInclusive(startDate: string, endDate: string): number {
+  if (!startDate || !endDate) return 0
+  return Math.max(0, diffDays(endDate, startDate) + 1)
+}

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { todayStr } from '../lib/date'
-import { distributeDays } from '../lib/distribute'
+import { todayStr, dayCountInclusive } from '../lib/date'
+import { distributeDays, DISTRIBUTION_LABELS, type Distribution } from '../lib/distribute'
 
 type Plan = {
   id: string
@@ -17,7 +17,7 @@ type Plan = {
   status: 'active' | 'completed'
   ai_strategy: string | null
   ai_comment_by: 'solar' | 'fallback' | null
-  distribution_pattern: 'even' | 'front' | 'back'
+  distribution_pattern: Distribution
 }
 
 type PlanDay = {
@@ -104,6 +104,10 @@ export default function PlanDetailPage() {
   const fmtMinutes = (m: number) =>
     m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ''}` : `${m}분`
 
+  // "기타" 단위는 숫자만 봐서는 무슨 단위인지 알 수 없어 괄호로 감싸고, 나머지는 숫자와 한 칸 띄움
+  const fmtAmount = (amount: number, unit: string) =>
+    unit === '기타' ? `${amount} (기타)` : `${amount} ${unit}`
+
   const completedCount = days.filter(d => d.status === 'complete').length
   const progress = days.length > 0 ? Math.round(completedCount / days.length * 100) : 0
   const today = todayStr()
@@ -136,20 +140,26 @@ export default function PlanDetailPage() {
         <div style={{ background: 'linear-gradient(150deg, #2E5A3A 0%, #3C6B45 100%)', borderRadius: 22, padding: 22, color: '#fff' }}>
           <div style={{ fontSize: 19, fontWeight: 800 }}>{plan.title}</div>
           <div style={{ fontSize: 12.5, opacity: 0.85, marginTop: 5 }}>
-            {fmtHeader(plan.start_date)} ~ {fmtHeader(plan.end_date)} · {plan.unit} 단위
+            {fmtHeader(plan.start_date)} ~ {fmtHeader(plan.end_date)} (총 {dayCountInclusive(plan.start_date, plan.end_date)}일)
           </div>
-          <div style={{ display: 'flex', gap: 26, marginTop: 16 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 26, rowGap: 14, marginTop: 16 }}>
             <div>
               <div style={{ fontSize: 11, opacity: 0.78 }}>진행률</div>
               <div style={{ fontSize: 17, fontWeight: 700 }}>{progress}%</div>
             </div>
             <div>
               <div style={{ fontSize: 11, opacity: 0.78 }}>전체 학습량</div>
-              <div style={{ fontSize: 17, fontWeight: 700 }}>{plan.total_amount}{plan.unit}</div>
+              <div style={{ fontSize: 17, fontWeight: 700 }}>{fmtAmount(plan.total_amount, plan.unit)}</div>
             </div>
             <div>
               <div style={{ fontSize: 11, opacity: 0.78 }}>하루 시간</div>
               <div style={{ fontSize: 17, fontWeight: 700 }}>{fmtMinutes(plan.daily_minutes)}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, opacity: 0.78 }}>학습량 배분</div>
+              <div style={{ fontSize: 17, fontWeight: 700 }}>
+                {(DISTRIBUTION_LABELS[plan.distribution_pattern] ?? DISTRIBUTION_LABELS.even).resultLabel}
+              </div>
             </div>
           </div>
         </div>
