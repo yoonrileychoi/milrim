@@ -115,6 +115,24 @@ export default function HomePage() {
     }
   }, [showComeback])
 
+  // 토스트를 "오늘 할 일 + AI 메이트" 영역 전체(좌우 패딩 포함)와 맞추기 — 그리드 폭·위치는
+  // 화면 크기·사이드바 유무에 따라 달라지므로 CSS로 추측하지 않고 실제 렌더링된 컨테이너의
+  // 위치·너비를 측정한다(StatsPage.tsx에서 쓴 방식과 동일 — 크기 추측은 화면 크기마다 어긋나기
+  // 쉽다). 데스크톱은 사이드바 때문에 콘텐츠 영역이 화면 정중앙(50vw)에 있지 않으므로,
+  // 중앙 정렬(left:50%+transform) 대신 컨테이너의 실제 left 좌표를 그대로 쓴다.
+  const todayGridRef = useRef<HTMLDivElement>(null)
+  const [toastBox, setToastBox] = useState<{ left: number; width: number } | null>(null)
+  useEffect(() => {
+    if (loading) return
+    const measure = () => {
+      const rect = todayGridRef.current?.getBoundingClientRect()
+      if (rect) setToastBox({ left: rect.left, width: rect.width })
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [loading, goals.length])
+
   // 토스트를 위·아래로 40px 이상 끌면(스와이프) 닫기
   const comebackDragStartY = useRef<number | null>(null)
   const handleComebackPointerDown = (e: ReactPointerEvent) => {
@@ -202,6 +220,13 @@ export default function HomePage() {
 
   const todayTasks = goals.filter(g => g.todayDay)
   const mostOverdue = goals.filter(g => g.overdueDays > 0).sort((a, b) => b.overdueDays - a.overdueDays)[0] ?? null
+
+  // 토스트 너비를 측정된 컨테이너 폭의 95%로 줄이되(요청: 5%씩 축소), 줄어든 만큼 좌우
+  // 여백을 균등하게 나눠 중심축은 그대로 유지한다
+  const toastShrink = 0.95
+  const toastRenderBox = toastBox
+    ? { left: toastBox.left + (toastBox.width * (1 - toastShrink)) / 2, width: toastBox.width * toastShrink }
+    : null
 
   // 개발 전용 — 복귀 환영 토스트 테스트 버튼. 방문 기록을 4일 전으로 되돌리고 새로고침한다.
   // import.meta.env.DEV 가드로 프로덕션 빌드에는 포함되지 않음(LoginPage 테스트 로그인과 동일 패턴)
@@ -313,7 +338,7 @@ export default function HomePage() {
           </div>
 
           {/* Today's tasks + coach message */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginTop: 16 }}>
+          <div ref={todayGridRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginTop: 16 }}>
             <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 22, padding: '22px 24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div style={{ fontSize: 16.5, fontWeight: 700, color: 'var(--ink)' }}>오늘 할 일</div>
@@ -409,7 +434,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 복귀 환영 토스트 */}
+          {/* 복귀 환영 토스트 — 옵션 A: 아이보리(카드 위에서도 또렷) */}
           {showComeback && (
             <div
               ref={comebackToastRef}
@@ -419,13 +444,19 @@ export default function HomePage() {
               onPointerUp={handleComebackPointerUp}
               onPointerCancel={handleComebackPointerUp}
               style={{
-                position: 'fixed', left: '50%', transform: 'translateX(-50%)', bottom: 96, zIndex: 300,
-                background: 'var(--primary)', color: '#fff', borderRadius: 16, padding: '14px 20px',
-                display: 'flex', alignItems: 'center', gap: 10, maxWidth: 'calc(100vw - 40px)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.25)', touchAction: 'none',
+                position: 'fixed', bottom: '11.2vh', zIndex: 300,
+                left: toastRenderBox ? `${toastRenderBox.left}px` : '50%',
+                transform: toastRenderBox ? 'none' : 'translateX(-50%)',
+                width: toastRenderBox ? `${toastRenderBox.width}px` : undefined,
+                background: '#FBF8F0',
+                color: '#1E2A1C', borderRadius: 11, padding: '12px 16px',
+                display: 'flex', alignItems: 'center', gap: 10,
+                maxWidth: 'calc(100vw - 40px)',
+                boxShadow: '0 8px 18px rgba(0,0,0,0.25)',
+                touchAction: 'none',
               }}
             >
-              <span className="ms" style={{ fontSize: 20, color: '#C2E098' }}>eco</span>
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#2F4A33', flexShrink: 0 }} />
               <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 }}>
                 다시 와줘서 고마워요. 돌아오기만 하면, 언제든 이어갈 수 있어요.
               </div>
@@ -433,7 +464,7 @@ export default function HomePage() {
                 onClick={() => setShowComeback(false)}
                 aria-label="닫기"
                 style={{
-                  border: 'none', background: 'transparent', color: '#fff', opacity: 0.75,
+                  border: 'none', background: 'transparent', color: '#1E2A1C', opacity: 0.6,
                   cursor: 'pointer', padding: 4, display: 'flex', flexShrink: 0,
                 }}
               >
