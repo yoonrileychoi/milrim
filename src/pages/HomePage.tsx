@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { useAuth } from '../contexts/AuthContext'
@@ -88,11 +88,48 @@ export default function HomePage() {
 
   // 토스트 자동 닫기 — 위 effect에 두면 user 객체가 갱신될 때 cleanup이 타이머를 지워버려
   // (재실행 시엔 이미 오늘 날짜가 저장돼 있어 새 타이머도 안 걸린다) 토스트가 영영 남는다.
+  // loading을 함께 보는 이유: 토스트는 loading이 끝난 뒤에야 화면에 그려지는데, showComeback만
+  // 보면 로딩 중에 타이머가 먼저 시작돼 데이터 조회가 6초를 넘기면 토스트가 보이기도 전에
+  // 닫혀버린다(2026-07-31 브라우저 확인 중 발견). 실제로 보이는 시점부터 30초를 센다.
+  useEffect(() => {
+    if (!showComeback || loading) return
+    const t = setTimeout(() => setShowComeback(false), 30000)
+    return () => clearTimeout(t)
+  }, [showComeback, loading])
+
+  // 토스트 바깥 영역 탭·클릭·스크롤 시 닫기. 토스트 자체 위에서 시작된 터치는 아래
+  // 스와이프 판정이 전담하므로 여기서는 제외한다(포인터 캡처 단계에서 ref로 확인).
+  const comebackToastRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!showComeback) return
-    const t = setTimeout(() => setShowComeback(false), 6000)
-    return () => clearTimeout(t)
+    const dismissIfOutside = (e: Event) => {
+      const target = e.target as Node | null
+      if (comebackToastRef.current && target && comebackToastRef.current.contains(target)) return
+      setShowComeback(false)
+    }
+    document.addEventListener('pointerdown', dismissIfOutside)
+    document.addEventListener('scroll', dismissIfOutside, true)
+    return () => {
+      document.removeEventListener('pointerdown', dismissIfOutside)
+      document.removeEventListener('scroll', dismissIfOutside, true)
+    }
   }, [showComeback])
+
+  // 토스트를 위·아래로 40px 이상 끌면(스와이프) 닫기
+  const comebackDragStartY = useRef<number | null>(null)
+  const handleComebackPointerDown = (e: ReactPointerEvent) => {
+    comebackDragStartY.current = e.clientY
+  }
+  const handleComebackPointerMove = (e: ReactPointerEvent) => {
+    if (comebackDragStartY.current == null) return
+    if (Math.abs(e.clientY - comebackDragStartY.current) > 40) {
+      comebackDragStartY.current = null
+      setShowComeback(false)
+    }
+  }
+  const handleComebackPointerUp = () => {
+    comebackDragStartY.current = null
+  }
 
   useEffect(() => {
     if (!user) return
@@ -166,8 +203,29 @@ export default function HomePage() {
   const todayTasks = goals.filter(g => g.todayDay)
   const mostOverdue = goals.filter(g => g.overdueDays > 0).sort((a, b) => b.overdueDays - a.overdueDays)[0] ?? null
 
+  // 개발 전용 — 복귀 환영 토스트 테스트 버튼. 방문 기록을 4일 전으로 되돌리고 새로고침한다.
+  // import.meta.env.DEV 가드로 프로덕션 빌드에는 포함되지 않음(LoginPage 테스트 로그인과 동일 패턴)
+  const handleDevResetComeback = () => {
+    const oldDate = addDaysStr(today, -4)
+    Object.keys(localStorage).filter(k => k.startsWith('milrim_last_visit_')).forEach(k => localStorage.setItem(k, oldDate))
+    window.location.reload()
+  }
+
   return (
     <Layout title={`안녕하세요, ${displayName}님`}>
+      {import.meta.env.DEV && (
+        <button
+          onClick={handleDevResetComeback}
+          style={{
+            position: 'fixed', top: 10, right: 10, zIndex: 500,
+            border: '1px dashed #b3ad9d', background: '#fff', color: '#847f6f',
+            fontSize: 11, fontWeight: 700, padding: '6px 10px', borderRadius: 10,
+            cursor: 'pointer',
+          }}
+        >
+          테스트: 복귀 토스트 띄우기
+        </button>
+      )}
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E2DCCB', borderTopColor: '#2E5A3A', animation: 'dspin 0.9s linear infinite' }} />
@@ -353,16 +411,34 @@ export default function HomePage() {
 
           {/* 복귀 환영 토스트 */}
           {showComeback && (
-            <div className="fade-in" style={{
-              position: 'fixed', left: '50%', transform: 'translateX(-50%)', bottom: 96, zIndex: 300,
-              background: 'var(--primary)', color: '#fff', borderRadius: 16, padding: '14px 20px',
-              display: 'flex', alignItems: 'center', gap: 10, maxWidth: 'calc(100vw - 40px)',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
-            }}>
+            <div
+              ref={comebackToastRef}
+              className="fade-in"
+              onPointerDown={handleComebackPointerDown}
+              onPointerMove={handleComebackPointerMove}
+              onPointerUp={handleComebackPointerUp}
+              onPointerCancel={handleComebackPointerUp}
+              style={{
+                position: 'fixed', left: '50%', transform: 'translateX(-50%)', bottom: 96, zIndex: 300,
+                background: 'var(--primary)', color: '#fff', borderRadius: 16, padding: '14px 20px',
+                display: 'flex', alignItems: 'center', gap: 10, maxWidth: 'calc(100vw - 40px)',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.25)', touchAction: 'none',
+              }}
+            >
               <span className="ms" style={{ fontSize: 20, color: '#C2E098' }}>eco</span>
               <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 }}>
                 다시 와줘서 고마워요. 돌아오기만 하면, 언제든 이어갈 수 있어요.
               </div>
+              <button
+                onClick={() => setShowComeback(false)}
+                aria-label="닫기"
+                style={{
+                  border: 'none', background: 'transparent', color: '#fff', opacity: 0.75,
+                  cursor: 'pointer', padding: 4, display: 'flex', flexShrink: 0,
+                }}
+              >
+                <span className="ms" style={{ fontSize: 18 }}>close</span>
+              </button>
             </div>
           )}
         </>
