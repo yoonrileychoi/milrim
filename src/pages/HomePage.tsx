@@ -91,14 +91,40 @@ export default function HomePage() {
   // loading을 함께 보는 이유: 토스트는 loading이 끝난 뒤에야 화면에 그려지는데, showComeback만
   // 보면 로딩 중에 타이머가 먼저 시작돼 데이터 조회가 6초를 넘기면 토스트가 보이기도 전에
   // 닫혀버린다(2026-07-31 브라우저 확인 중 발견). 실제로 보이는 시점부터 30초를 센다.
+  // 탭·앱이 백그라운드로 가 있는 동안은 타이머를 멈추고, 돌아오면 남은 시간만큼 이어서 센다 —
+  // 안 그러면 "돌아와도 괜찮다"는 환영 메시지를 정작 돌아왔을 때 못 보고 놓치게 된다.
   useEffect(() => {
     if (!showComeback || loading) return
-    const t = setTimeout(() => setShowComeback(false), 30000)
-    return () => clearTimeout(t)
+    let remaining = 30000
+    let startedAt = Date.now()
+    let timer: ReturnType<typeof setTimeout>
+
+    const start = () => {
+      startedAt = Date.now()
+      timer = setTimeout(() => setShowComeback(false), remaining)
+    }
+    const pause = () => {
+      clearTimeout(timer)
+      remaining -= Date.now() - startedAt
+    }
+    const handleVisibility = () => {
+      if (document.hidden) pause()
+      else start()
+    }
+
+    start()
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
   }, [showComeback, loading])
 
-  // 토스트 바깥 영역 탭·클릭·스크롤 시 닫기. 토스트 자체 위에서 시작된 터치는 아래
-  // 스와이프 판정이 전담하므로 여기서는 제외한다(포인터 캡처 단계에서 ref로 확인).
+  // 토스트 바깥 영역 탭·클릭 시 닫기. pointerdown이 아니라 click을 쓴다 — pointerdown은
+  // 손가락이 화면에 닿는 순간(스크롤·드래그 시작 포함) 무조건 발생해서, 모바일에서 목록을
+  // 스크롤만 해도 토스트가 닫히는 문제가 있었다(2026-08-01 확인). click은 브라우저가 "누르고
+  // 움직임 없이 뗐을 때"만 발생시켜 드래그·스크롤은 자동으로 걸러진다.
+  // 토스트 자체 위에서 시작된 터치는 아래 스와이프 판정이 전담하므로 여기서는 제외한다.
   const comebackToastRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!showComeback) return
@@ -107,11 +133,9 @@ export default function HomePage() {
       if (comebackToastRef.current && target && comebackToastRef.current.contains(target)) return
       setShowComeback(false)
     }
-    document.addEventListener('pointerdown', dismissIfOutside)
-    document.addEventListener('scroll', dismissIfOutside, true)
+    document.addEventListener('click', dismissIfOutside)
     return () => {
-      document.removeEventListener('pointerdown', dismissIfOutside)
-      document.removeEventListener('scroll', dismissIfOutside, true)
+      document.removeEventListener('click', dismissIfOutside)
     }
   }, [showComeback])
 
