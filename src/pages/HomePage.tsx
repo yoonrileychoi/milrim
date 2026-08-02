@@ -191,6 +191,28 @@ export default function HomePage() {
     return () => window.removeEventListener('resize', measure)
   }, [loading])
 
+  // "오늘의 계획" 카드 목록 — 모바일(1000px 미만)에서는 2개까지만 보이고 나머지는 세로
+  // 스크롤. 항목 높이를 추측하지 않고 실제 렌더링된 2번째 카드의 위치를 측정해 그 아래에서
+  // 자른다(StatsPage.tsx "목표별 진행률"과 같은 방식). 데스크톱은 제한 없음.
+  const goalsGridRef = useRef<HTMLDivElement>(null)
+  const [goalsMaxHeight, setGoalsMaxHeight] = useState<number>()
+  useEffect(() => {
+    const recompute = () => {
+      const container = goalsGridRef.current
+      if (!container || window.innerWidth >= 1000 || container.children.length === 0) {
+        setGoalsMaxHeight(undefined)
+        return
+      }
+      const items = Array.from(container.children) as HTMLElement[]
+      const lastVisible = items[Math.min(2, items.length) - 1]
+      const height = lastVisible.getBoundingClientRect().bottom - container.getBoundingClientRect().top + container.scrollTop
+      setGoalsMaxHeight(height)
+    }
+    recompute()
+    window.addEventListener('resize', recompute)
+    return () => window.removeEventListener('resize', recompute)
+  }, [goals])
+
   // 코치 팝업 닫기 — 곧바로 지우지 않고 축소 애니메이션(0.2s)을 재생한 뒤 제거한다.
   const closeCoachPop = () => {
     setCoachPopClosing(true)
@@ -433,7 +455,13 @@ export default function HomePage() {
             )}
           </div>
           {/* Goal cards — always 4 slots, filler with "새 계획 추가" */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+          <div
+            ref={goalsGridRef}
+            style={{
+              display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16,
+              maxHeight: goalsMaxHeight, overflowY: goalsMaxHeight ? 'auto' : undefined,
+            }}
+          >
             {goals.slice(0, 4).map((g, i) => {
               const [c1, c2] = CARD_COLORS[i % CARD_COLORS.length]
               return (
@@ -500,7 +528,7 @@ export default function HomePage() {
           </div>
 
           {/* Today's tasks + coach message */}
-          <div ref={todayGridRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginTop: 16 }}>
+          <div ref={todayGridRef} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginTop: 16 }}>
             <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 22, padding: '22px 24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div style={{ fontSize: 16.5, fontWeight: 700, color: 'var(--ink)' }}>오늘 할 일</div>

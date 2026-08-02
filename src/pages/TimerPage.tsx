@@ -174,7 +174,7 @@ export default function TimerPage() {
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ fontSize: 52, fontWeight: 800, color: '#2B2A26', fontVariantNumeric: 'tabular-nums' }}>{mins}:{secs}</div>
               <div style={{ fontSize: 13, color: '#9a9482', marginTop: 4 }}>
-                {dailyMinutes ? `목표 ${dailyMinutes}분` : '집중하는 중'}
+                집중하는 중
               </div>
             </div>
           </div>
