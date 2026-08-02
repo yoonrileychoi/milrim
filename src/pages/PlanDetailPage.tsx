@@ -176,7 +176,7 @@ export default function PlanDetailPage() {
               <span className="ms" style={{ fontSize: 18, color: '#6B9C4A', flexShrink: 0, marginTop: 1 }}>{isAi ? 'auto_awesome' : 'eco'}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, color: '#3E5A2E', lineHeight: 1.55 }}>
-                  {isAi && <span style={{ fontWeight: 700 }}>AI 메이트의 한 마디: </span>}
+                  {isAi && <span style={{ fontWeight: 700 }}>AI 도우미의 한 마디: </span>}
                   {plan.ai_strategy}
                 </div>
                 {isAi && (

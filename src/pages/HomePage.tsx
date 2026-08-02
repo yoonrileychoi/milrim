@@ -174,6 +174,23 @@ export default function HomePage() {
     return () => window.removeEventListener('resize', measure)
   }, [loading, goals.length])
 
+  // 코치 팝업 위치 — 폭은 시안대로 고정 392px를 쓰되, 화면 정중앙이 아니라 AI 배너의 실제
+  // 좌표(left) 기준으로 배치한다. 데스크톱은 사이드바 때문에 콘텐츠 영역이 화면 정중앙에
+  // 있지 않아, 화면 기준으로 가운데 정렬하면 팝업이 사이드바 쪽으로 넘어가 버린다
+  // (복귀 토스트가 이미 같은 이유로 컨테이너 실제 left 좌표를 쓰는 것과 동일한 원리, 2026-08-02).
+  const mateBannerRef = useRef<HTMLDivElement>(null)
+  const [mateBannerBox, setMateBannerBox] = useState<{ left: number; width: number } | null>(null)
+  useEffect(() => {
+    if (loading) return
+    const measure = () => {
+      const rect = mateBannerRef.current?.getBoundingClientRect()
+      if (rect) setMateBannerBox({ left: rect.left, width: rect.width })
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [loading])
+
   // 코치 팝업 닫기 — 곧바로 지우지 않고 축소 애니메이션(0.2s)을 재생한 뒤 제거한다.
   const closeCoachPop = () => {
     setCoachPopClosing(true)
@@ -287,7 +304,16 @@ export default function HomePage() {
   }, [today, user?.id])
 
   const todayTasks = goals.filter(g => g.todayDay)
-  const mostOverdue = goals.filter(g => g.overdueDays > 0).sort((a, b) => b.overdueDays - a.overdueDays)[0] ?? null
+  // "이어가기" 대상 선정 기준(2026-08-02 확정, B안): 밀린 계획들 중 목표일(end_date)이
+  // 가장 가까운 것 — "목표일은 유지한다"는 서비스 철학과 맞추기 위해 밀린 정도가 아닌
+  // 마감 임박도로 고른다. 목표일이 같으면 완료한 날 수가 적은 것 → 재계획 횟수가 적은 것 →
+  // 이름 가나다순(ㄱ에 가까운 것) 순으로 하나를 정한다.
+  const mostOverdue = goals.filter(g => g.overdueDays > 0).sort((a, b) =>
+    a.end_date.localeCompare(b.end_date)
+    || a.completedDays - b.completedDays
+    || a.replan_count - b.replan_count
+    || a.title.localeCompare(b.title, 'ko')
+  )[0] ?? null
 
   // 토스트 너비를 측정된 컨테이너 폭의 95%로 줄이되(요청: 5%씩 축소), 줄어든 만큼 좌우
   // 여백을 균등하게 나눠 중심축은 그대로 유지한다
@@ -349,40 +375,54 @@ export default function HomePage() {
             {studyDayCount > 0 ? `${studyDayCount}일째 숲을 가꾸는 중이에요` : '오늘부터 숲을 가꿔볼까요?'}
           </div>
 
-          {/* AI 메이트 카드 — 화면 최상단(카운터 바로 아래)으로 이동. 원래는 아래 "오늘 할 일"
-              옆 2칸 그리드의 두 번째 칸이었다(2026-08-02 재배치). */}
-          <div style={{ background: 'var(--primary-tint)', borderRadius: 22, padding: 22, display: 'flex', flexDirection: 'column', gap: 13, marginBottom: 16 }}>
-            <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
-              <span className="ms" style={{ fontSize: 28 }}>eco</span>
-            </div>
-            {coachIsAi && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: 'var(--primary)', opacity: 0.75 }}>
-                <span className="ms" style={{ fontSize: 13 }}>auto_awesome</span>
-                AI 메이트의 오늘 한마디
+          {/* AI 메이트 배너 — 화면 최상단(카운터 바로 아래). Claude Design 시안 "2a 헤더 밴드형"
+              적용(2026-08-02, 프로젝트 261ec904-0d94-4906-a897-a090ddd0c478). 원래는 아래
+              "오늘 할 일" 옆 2칸 그리드의 두 번째 칸이었다. */}
+          <div ref={mateBannerRef} style={{
+            borderRadius: 16, overflow: 'hidden', background: '#FFFDF7',
+            border: '1px solid #E1DED0', boxShadow: '0 4px 14px rgba(30,36,26,0.07)',
+            marginBottom: 26,
+          }}>
+            <div style={{ background: '#2F4A33', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 9 }}>
+              <div style={{ width: 20, height: 20, borderRadius: 6, background: 'rgba(255,255,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span className="ms" style={{ fontSize: 12, color: '#E8F0E2' }}>eco</span>
               </div>
-            )}
-            <div style={{ fontSize: 15, color: 'var(--primary)', lineHeight: 1.65, fontWeight: 600 }}>
-              {coachMessage}
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#E8F0E2', letterSpacing: '0.02em' }}>오늘의 한 마디 by AI 도우미</span>
             </div>
-            {coachIsAi && (
-              <div style={{ textAlign: 'right', fontSize: 10.5, color: 'var(--primary)', opacity: 0.55, letterSpacing: 0.3 }}>
-                Powered by Solar
+            <div style={{ padding: '22px 20px 18px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontSize: 19, fontWeight: 700, lineHeight: 1.5, color: '#1D2A1B', letterSpacing: '-0.01em', wordBreak: 'keep-all', marginBottom: 24 }}>
+                {coachMessage}
               </div>
-            )}
-            {mostOverdue && (
-              <button
-                onClick={() => navigate('/replan', { state: { planId: mostOverdue.id } })}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                  border: 'none', background: 'var(--primary)', color: '#fff',
-                  fontSize: 14, fontWeight: 700, padding: '13px 16px', borderRadius: 12,
-                  fontFamily: 'var(--font)', cursor: 'pointer', marginTop: 3,
-                }}
-              >
-                <span className="ms" style={{ fontSize: 18 }}>auto_awesome</span>
-                '{mostOverdue.title}' 이어가기
-              </button>
-            )}
+              {(mostOverdue || coachIsAi) && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ height: 1, background: '#E7E3D4' }} />
+                  {mostOverdue && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                      <div style={{ fontSize: 12, color: '#7C8272', lineHeight: 1.5, wordBreak: 'keep-all' }}>
+                        마감일이 다가오고 있는 계획부터 시작해볼까요?
+                      </div>
+                      <button
+                        onClick={() => navigate('/replan', { state: { planId: mostOverdue.id } })}
+                        style={{
+                          border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+                          padding: '9px 16px', borderRadius: 10,
+                          background: '#2F4A33', color: '#FBF8F0',
+                          fontSize: 12.5, fontWeight: 700, fontFamily: 'var(--font)',
+                        }}
+                      >
+                        '{mostOverdue.title}' 이어가기
+                      </button>
+                    </div>
+                  )}
+                  {coachIsAi && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C3CBB8' }} />
+                      <span style={{ fontSize: 10, fontWeight: 500, color: '#A9A492', letterSpacing: '0.04em' }}>Powered by Solar</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Goal cards header */}
@@ -522,19 +562,20 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 코치 팝업 — 오늘 첫 방문 시 1회. 배경을 한 톤 어둡게 덮어 팝업만 또렷하게 보이도록 한다.
-              닫으면 배경이 원래 밝기로 돌아오고 팝업은 작아지며 사라진다. */}
+          {/* 코치 팝업 — 오늘 첫 방문 시 1회. Claude Design 시안 "팝업 디자인 시안 3종"의 1a
+              (그린 헤더 밴드) 적용(2026-08-02, 프로젝트 261ec904-0d94-4906-a897-a090ddd0c478).
+              배경을 한 톤 어둡게 덮어 팝업만 또렷하게 보이도록 하고, 닫으면 배경이 원래
+              밝기로 돌아오고 팝업은 작아지며 사라진다. */}
           {showCoachPop && (
-            <div
-              className={coachPopClosing ? 'coach-backdrop-out' : 'coach-backdrop-in'}
-              onClick={closeCoachPop}
-              style={{
-                position: 'fixed', inset: 0, zIndex: 400,
-                background: 'rgba(30, 35, 28, 0.45)',
-                display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-                padding: '14vh 20px 20px',
-              }}
-            >
+            <>
+              <div
+                className={coachPopClosing ? 'coach-backdrop-out' : 'coach-backdrop-in'}
+                onClick={closeCoachPop}
+                style={{
+                  position: 'fixed', inset: 0, zIndex: 400,
+                  background: 'rgba(24, 30, 22, 0.44)',
+                }}
+              />
               <div
                 className={coachPopClosing ? 'coach-pop-out' : 'coach-pop-in'}
                 // 팝업 안쪽을 눌렀을 때 배경 클릭으로 번져 닫히지 않도록 막는다.
@@ -544,44 +585,55 @@ export default function HomePage() {
                 onPointerUp={handleCoachPointerUp}
                 onPointerCancel={handleCoachPointerUp}
                 style={{
-                  width: '100%', maxWidth: 420,
-                  background: 'var(--primary-tint)', borderRadius: 22, padding: '24px 24px 20px',
-                  display: 'flex', flexDirection: 'column', gap: 13,
-                  boxShadow: '0 14px 34px rgba(0,0,0,0.28)',
+                  position: 'fixed', zIndex: 401, top: '50%',
+                  // 화면 정중앙이 아니라 AI 배너의 실제 좌표 안에서 가운데 정렬한다(사이드바로
+                  // 넘어가는 문제 수정, 2026-08-02). 측정 전에는 화면 중앙에 임시로 띄운다.
+                  // 폭 조정 이력(사용자 요청 누적): 392 → 588(+25%) → 706(+10%) → 607(-7%) → 668(+5%).
+                  left: mateBannerBox
+                    ? `${mateBannerBox.left + Math.max(0, (mateBannerBox.width - 668) / 2)}px`
+                    : '50%',
+                  transform: mateBannerBox ? 'translateY(-50%)' : 'translate(-50%, -50%)',
+                  width: 'calc(100vw - 40px)', maxWidth: 668,
+                  borderRadius: 18, overflow: 'hidden',
+                  background: '#FFFDF7',
+                  boxShadow: '0 24px 56px rgba(16,22,14,0.34)',
                   touchAction: 'none',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-                  <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', flexShrink: 0 }}>
-                    <span className="ms" style={{ fontSize: 28 }}>eco</span>
+                <div style={{ background: '#2F4A33', padding: '16px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: 7, background: 'rgba(255,255,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span className="ms" style={{ fontSize: 12, color: '#E8F0E2' }}>eco</span>
+                    </div>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: '#E8F0E2', letterSpacing: '0.02em' }}>오늘의 한 마디 by AI 도우미</span>
                   </div>
                   <button
                     onClick={closeCoachPop}
                     aria-label="닫기"
                     style={{
-                      border: 'none', background: 'transparent', color: 'var(--primary)', opacity: 0.6,
-                      cursor: 'pointer', padding: 4, display: 'flex', flexShrink: 0,
+                      border: 'none', background: 'transparent', color: 'rgba(232,240,226,0.6)',
+                      cursor: 'pointer', padding: 0, display: 'flex',
                     }}
                   >
-                    <span className="ms" style={{ fontSize: 20 }}>close</span>
+                    <span className="ms" style={{ fontSize: 15 }}>close</span>
                   </button>
                 </div>
-                {coachIsAi && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: 'var(--primary)', opacity: 0.75 }}>
-                    <span className="ms" style={{ fontSize: 13 }}>auto_awesome</span>
-                    AI 메이트의 오늘 한마디
+                <div style={{ padding: '24px 22px 20px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  <div style={{ fontSize: 19, fontWeight: 700, lineHeight: 1.5, color: '#1D2A1B', letterSpacing: '-0.01em', wordBreak: 'keep-all' }}>
+                    {coachMessage}
                   </div>
-                )}
-                <div style={{ fontSize: 15.5, color: 'var(--primary)', lineHeight: 1.65, fontWeight: 600 }}>
-                  {coachMessage}
+                  {coachIsAi && (
+                    <>
+                      <div style={{ height: 1, background: '#E7E3D4' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C3CBB8' }} />
+                        <span style={{ fontSize: 10, fontWeight: 500, color: '#A9A492', letterSpacing: '0.04em' }}>Powered by Solar</span>
+                      </div>
+                    </>
+                  )}
                 </div>
-                {coachIsAi && (
-                  <div style={{ textAlign: 'right', fontSize: 10.5, color: 'var(--primary)', opacity: 0.55, letterSpacing: 0.3 }}>
-                    Powered by Solar
-                  </div>
-                )}
               </div>
-            </div>
+            </>
           )}
 
           {/* 복귀 환영 토스트 — 옵션 A: 아이보리(카드 위에서도 또렷) */}
