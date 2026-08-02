@@ -101,9 +101,6 @@ export default function PlanDetailPage() {
     return `${parseInt(m)}/${parseInt(day)}`
   }
 
-  const fmtMinutes = (m: number) =>
-    m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ''}` : `${m}분`
-
   // "기타" 단위는 숫자만 봐서는 무슨 단위인지 알 수 없어 괄호로 감싸고, 나머지는 숫자와 한 칸 띄움
   const fmtAmount = (amount: number, unit: string) =>
     unit === '기타' ? `${amount} (기타)` : `${amount} ${unit}`
@@ -150,10 +147,6 @@ export default function PlanDetailPage() {
             <div>
               <div style={{ fontSize: 11, opacity: 0.78 }}>전체 학습량</div>
               <div style={{ fontSize: 17, fontWeight: 700 }}>{fmtAmount(plan.total_amount, plan.unit)}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 11, opacity: 0.78 }}>하루 시간</div>
-              <div style={{ fontSize: 17, fontWeight: 700 }}>{fmtMinutes(plan.daily_minutes)}</div>
             </div>
             <div>
               <div style={{ fontSize: 11, opacity: 0.78 }}>학습량 배분</div>
