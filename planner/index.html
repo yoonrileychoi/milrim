@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>밀림 - 밀려도 괜찮은 AI 학습 플래너</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    :root {
+      --primary: #2E5A3A;
+      --ink: #2B2A26;
+      --paper: #FAF6EE;
+      --white: #fff;
+      --border: #ECE7DA;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 상단 바 — 로고만 */
+    .topbar {
+      display: flex;
+      align-items: center;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo-small { font-size: 18px; font-weight: 800; color: var(--primary); letter-spacing: 0.02em; }
+
+    /* 서비스 소개 — 항상 상단에 보임 */
+    .intro-panel {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+    }
+    .intro-inner { padding: 20px 28px; max-width: 760px; margin: 0 auto; }
+    .pitch { font-size: 14px; line-height: 1.7; color: #4A473F; }
+    .highlights { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .highlight { display: flex; gap: 9px; font-size: 13px; line-height: 1.55; color: #4A473F; }
+    .highlight b { color: var(--ink); }
+    .dot { flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); margin-top: 6px; }
+
+    /* 히어로 — 데스크톱 화면이 1순위, 화면 대부분 차지 */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      gap: 22px;
+    }
+    .frame-viewport {
+      width: 100%; max-width: 1040px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .scale-wrap { transform-origin: top center; }
+    .desktop-frame {
+      width: 1040px;
+      height: 640px;
+      background: #1c1c1a;
+      border-radius: 16px;
+      padding: 32px 12px 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+      position: relative;
+    }
+    .desktop-frame::before {
+      content: '';
+      position: absolute; top: 12px; left: 18px;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: #e0574c;
+      box-shadow: 18px 0 0 #e0b93f, 36px 0 0 #59b96b;
+    }
+    .desktop-frame iframe {
+      display: block; width: 100%; height: 100%;
+      border: none; border-radius: 7px; background: #fff;
+      /* 클릭·스크롤 등 상호작용을 막아 순전히 보여주기용 미리보기로만 쓴다 —
+         심사위원이 여기서 직접 테스트하다 끝내지 않고, "시작하기"로 실제 서비스에
+         들어가게 유도(사용자 요청, 2026-08-03) */
+      pointer-events: none;
+    }
+
+    /* 하단 액션 버튼 2개 */
+    .actions { display: flex; gap: 12px; align-items: flex-start; }
+    .btn-primary {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--primary); color: #fff; font-weight: 700; font-size: 15px;
+      padding: 14px 26px; border-radius: 12px; text-decoration: none;
+    }
+    .btn-secondary {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      background: var(--white); color: var(--ink); font-weight: 700; font-size: 15px;
+      padding: 14px 22px; border-radius: 12px; border: 1px solid var(--border);
+      cursor: pointer; font-family: inherit;
+    }
+
+    /* 모바일 확인하기 팝오버 */
+    .mobile-btn-wrap { position: relative; }
+    .mobile-popover {
+      display: none;
+      position: absolute; bottom: calc(100% + 12px); right: 0;
+      width: 260px;
+      background: var(--white); border: 1px solid var(--border); border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.14);
+      text-align: center;
+    }
+    .mobile-popover.open { display: block; }
+    .phone-mini-viewport { display: flex; justify-content: center; overflow: hidden; height: 200px; }
+    .phone-mini { transform: scale(0.34); transform-origin: top center; }
+    .phone-frame-sm {
+      width: 390px; height: 844px; box-sizing: content-box;
+      background: #111; border-radius: 46px; padding: 14px;
+    }
+    .phone-frame-sm iframe { display: block; width: 100%; height: 100%; border: none; border-radius: 26px; background: #fff; }
+    .mobile-popover img { width: 72px; height: 72px; border-radius: 6px; margin-top: 4px; }
+    .mobile-popover-text { font-size: 11.5px; color: #6B6757; margin-top: 8px; line-height: 1.5; }
+    .mobile-popover a.big-link { display: inline-block; margin-top: 10px; font-size: 12.5px; font-weight: 700; color: var(--primary); text-decoration: none; }
+
+    @media (max-width: 900px) {
+      .topbar { padding: 14px 18px; }
+      .hero { padding: 20px 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="logo-small">밀림 MILRIM</div>
+  </div>
+
+  <div class="intro-panel">
+    <div class="intro-inner">
+      <div class="pitch">
+        많은 사람들은 계획이 한두 번 밀리면 "실패했다"라며 포기합니다. 밀림은 계획이 밀리는 것을
+        학습의 당연한 과정이라 정의합니다. 계획이 틀어져도 목표 마감일을 포기하지 않도록,
+        AI가 학습 계획을 다시 짜 드립니다.
+      </div>
+      <div class="highlights">
+        <div class="highlight"><span class="dot"></span><span><b>AI 활용</b> — 국내 LLM Upstage Solar로 학습 계획을 실시간 생성하고, 계획이 밀리면 남은 기간·완료 이력을 반영해 AI가 다시 짜드립니다.</span></div>
+        <div class="highlight"><span class="dot"></span><span><b>매일의 동기부여</b> — 매일 자정 Solar가 사용자의 학습 유형·전날 달성률을 분석해 그날의 코치 메시지를 만들어 보여줍니다.</span></div>
+        <div class="highlight"><span class="dot"></span><span><b>꾸준함을 기록</b> — 학습 시간·계획 달성일수·재계획 횟수를 통계로 시각화해, "밀려도 계속했다"는 걸 숫자로 보여줍니다.</span></div>
+        <div class="highlight"><span class="dot"></span><span><b>기술 스택</b> — React · TypeScript · Supabase(PostgreSQL, RLS 적용) · Upstage Solar</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="frame-viewport">
+      <div class="scale-wrap" id="desktopWrap">
+        <div class="desktop-frame">
+          <iframe src="https://yoonrileychoi.github.io/milrim/login?guest=1" title="밀림 데스크톱 미리보기"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="btn-primary" href="https://yoonrileychoi.github.io/milrim/" target="_blank" rel="noopener">시작하기 →</a>
+      <div class="mobile-btn-wrap">
+        <button class="btn-secondary" id="mobileToggle" onclick="toggleMobile()">모바일로 확인하기</button>
+        <div class="mobile-popover" id="mobilePopover">
+          <div class="phone-mini-viewport">
+            <div class="phone-mini">
+              <div class="phone-frame-sm">
+                <iframe src="https://yoonrileychoi.github.io/milrim/login?guest=1" title="밀림 모바일 미리보기"></iframe>
+              </div>
+            </div>
+          </div>
+          <img src="./guide-qr.png" alt="밀림 접속 QR 코드" />
+          <div class="mobile-popover-text">
+            QR을 스캔하면 실제 모바일에서 바로 열립니다.<br />
+            카카오 계정 없이 <b>게스트로 체험</b> 가능합니다.
+          </div>
+          <a class="big-link" href="./mobile/" target="_blank" rel="noopener">크게 보기 →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleMobile() {
+      document.getElementById('mobilePopover').classList.toggle('open');
+    }
+    // 데스크톱 히어로 프레임 — 가로·세로 둘 다 화면에 맞춰 비율 그대로 축소만 한다.
+    // clientHeight 대신 window.innerHeight에서 실제 다른 영역(상단바·소개·버튼) 높이를
+    // 직접 빼는 방식을 쓴다 — flex 레이아웃에 맡기면 계산이 0이 돼 통째로 사라지는
+    // 사고가 있었다(2026-08-03). 최소 배율(0.3)도 안전장치로 둔다.
+    function fitDesktop() {
+      var wrap = document.getElementById('desktopWrap');
+      var viewport = wrap.parentElement; // .frame-viewport
+      var frame = wrap.firstElementChild;
+      var topbar = document.querySelector('.topbar');
+      var intro = document.querySelector('.intro-panel');
+      var actions = document.querySelector('.actions');
+      var reserved = topbar.offsetHeight + intro.offsetHeight + actions.offsetHeight + 64 + 22; // 여백+gap
+      var availableH = Math.max(200, window.innerHeight - reserved);
+      var scaleW = viewport.clientWidth / frame.offsetWidth;
+      var scaleH = availableH / frame.offsetHeight;
+      var scale = Math.max(0.3, Math.min(1, scaleW, scaleH)) * 2.1;
+      wrap.style.transform = 'scale(' + scale + ')';
+      wrap.style.marginBottom = (frame.offsetHeight * scale - frame.offsetHeight) + 'px';
+    }
+    window.addEventListener('load', fitDesktop);
+    window.addEventListener('resize', fitDesktop);
+    document.addEventListener('click', function (e) {
+      var wrap = document.querySelector('.mobile-btn-wrap');
+      if (wrap && !wrap.contains(e.target)) {
+        document.getElementById('mobilePopover').classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>
