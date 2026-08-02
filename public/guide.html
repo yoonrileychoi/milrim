@@ -37,10 +37,19 @@
       flex: 1;
       background: #F0EADC;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 14px;
       padding: 40px;
       overflow: hidden;
+    }
+    .phone-caption {
+      text-align: center;
+      font-size: 12.5px;
+      color: #8a8471;
+      line-height: 1.6;
+      max-width: 340px;
     }
     .logo { font-size: 30px; font-weight: 800; color: var(--primary); letter-spacing: 0.02em; }
     .tagline { font-size: 15px; color: #6B6757; margin-top: 6px; }
@@ -164,13 +173,21 @@
       </div>
 
       <a class="cta" href="https://yoonrileychoi.github.io/milrim/" target="_blank" rel="noopener">웹으로 바로 보기 →</a>
-      <div class="stack-label">카카오 계정이 없어도 로그인 화면의 "게스트로 체험하기"로 바로 사용해보실 수 있습니다.</div>
+      <div class="stack-label">
+        카카오 계정이 없어도 로그인 화면의 "게스트로 체험하기"로 바로 사용해보실 수 있습니다.
+        샘플 학습 계획과 기록이 채워진 채로 시작하며, <b>"새 계획 추가"</b>를 눌러보시면
+        AI가 실시간으로 학습 계획을 만들어주는 과정도 직접 체험하실 수 있습니다.
+      </div>
     </div>
     <div class="right">
       <div class="phone-scale-wrap" id="phoneWrap">
         <div class="phone-frame">
           <iframe src="https://yoonrileychoi.github.io/milrim/?guest=1" title="밀림 모바일 미리보기"></iframe>
         </div>
+      </div>
+      <div class="phone-caption">
+        게스트 계정은 샘플 학습 계획이 채워진 채로 시작합니다.<br />
+        <b>"새 계획 추가"</b>를 눌러 AI가 실시간으로 계획을 만드는 것도 직접 체험해보세요.
       </div>
     </div>
   </div>
@@ -179,8 +196,10 @@
       var wrap = document.getElementById('phoneWrap');
       if (!wrap) return;
       var right = wrap.parentElement;
+      var caption = wrap.nextElementSibling;
       var frame = wrap.firstElementChild;
-      var availableH = right.clientHeight - 40; // 위아래 여백
+      var reserved = 40 + (caption ? caption.offsetHeight + 14 : 0); // 여백 + 캡션 높이 + 간격
+      var availableH = right.clientHeight - reserved;
       var naturalH = frame.offsetHeight; // 390x844 + 패딩(14px씩)
       var scale = Math.min(1, availableH / naturalH);
       wrap.style.transform = 'scale(' + scale + ')';

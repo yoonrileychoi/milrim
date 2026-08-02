@@ -274,6 +274,35 @@ body {
   }
 }
 
+/* "계획 달성" 카드 — 모바일에서는 위 7:3 분할 탓에 폭이 30%뿐이라 글씨가 넘쳐서
+   줄이 깨진다. 카드 자체 패딩과 글씨 크기를 모바일에서만 줄여 한 줄에 들어가게 한다. */
+.stats-achieve-card {
+  padding: 22px 24px;
+}
+.stats-achieve-label {
+  font-size: 13px;
+}
+.stats-achieve-value {
+  font-size: 28px;
+}
+.stats-achieve-unit {
+  font-size: 14px;
+}
+@media (max-width: 999px) {
+  .stats-achieve-card {
+    padding: 14px 10px;
+  }
+  .stats-achieve-label {
+    font-size: 10.5px;
+  }
+  .stats-achieve-value {
+    font-size: 20px;
+  }
+  .stats-achieve-unit {
+    font-size: 10.5px;
+  }
+}
+
 /* "전체/오늘 누적 학습" 라벨의 " 시간" — 데스크톱에서만 보이고 모바일에서는 숨긴다. */
 .stats-label-suffix {
   display: inline;

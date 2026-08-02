@@ -271,6 +271,10 @@ export default function HomePage() {
           // 관리자 계정은 RLS 정책상 남의 플랜도 조회되므로 본인 것만 명시 필터
           .eq('user_id', user.id)
           .eq('status', 'active')
+          // 목표 달성 기간이 지난 계획(완료 여부 무관)은 "오늘의 계획"·"오늘 할 일"·타이머
+          // 어디에도 노출하지 않는다(사용자 확정, 2026-08-03) — 지난 계획은 계획 목록의
+          // "달성 기간이 지난 계획" 섹션에서만 보인다.
+          .gte('end_date', today)
           .order('created_at', { ascending: false }),
         supabase.from('milrim_plan_days').select('date').eq('user_id', user.id).eq('status', 'complete'),
         supabase

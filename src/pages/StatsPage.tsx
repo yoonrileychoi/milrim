@@ -157,10 +157,10 @@ export default function StatsPage() {
                   </div>
                 </div>
               </div>
-              <div style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20, padding: '22px 24px' }}>
-                <div style={{ fontSize: 13, color: '#9a9482' }}>계획 달성</div>
-                <div style={{ fontSize: 28, fontWeight: 800, color: '#2B2A26', marginTop: 7 }}>
-                  <span style={{ fontSize: 14 }}>총 </span>{studyDays}<span style={{ fontSize: 14 }}> 일</span>
+              <div className="stats-achieve-card" style={{ background: '#fff', border: '1px solid #ECE7DA', borderRadius: 20 }}>
+                <div className="stats-achieve-label" style={{ color: '#9a9482', whiteSpace: 'nowrap' }}>계획 달성</div>
+                <div className="stats-achieve-value" style={{ fontWeight: 800, color: '#2B2A26', marginTop: 7, whiteSpace: 'nowrap' }}>
+                  <span className="stats-achieve-unit">총 </span>{studyDays}<span className="stats-achieve-unit"> 일</span>
                 </div>
               </div>
             </div>
