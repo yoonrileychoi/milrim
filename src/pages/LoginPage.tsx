@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { LogoBars } from '../components/Logo'
 import { supabase } from '../lib/supabase'
 
@@ -9,6 +9,28 @@ export default function LoginPage() {
   const [devPassword, setDevPassword] = useState('')
   const [devError, setDevError] = useState('')
   const [devLoading, setDevLoading] = useState(false)
+  const [guestLoading, setGuestLoading] = useState(false)
+  const [guestError, setGuestError] = useState('')
+
+  // 심사위원 등 카카오 계정 없이 체험할 수 있는 게스트 로그인 — Supabase 익명 로그인으로
+  // 실제 auth 세션을 발급받아, 카카오 로그인 사용자와 동일한 경로(RLS·AI 계획 생성 등)를 그대로 탄다.
+  const handleGuestLogin = async () => {
+    setGuestLoading(true)
+    setGuestError('')
+    const { error } = await supabase.auth.signInAnonymously()
+    if (error) {
+      setGuestError(`게스트 로그인에 실패했어요: ${error.message}`)
+      setGuestLoading(false)
+    }
+  }
+
+  // guide.html의 모바일 미리보기 iframe(?guest=1)에서는 버튼 클릭 없이 바로 게스트로 입장한다.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('guest') === '1') {
+      handleGuestLogin()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleKakaoLogin = async () => {
     setLoading(true)
@@ -64,6 +86,23 @@ export default function LoginPage() {
           </button>
 {error && (
             <div style={{ textAlign: 'center', fontSize: 13, color: '#B5524A', marginTop: 4 }}>{error}</div>
+          )}
+          <button
+            onClick={handleGuestLogin}
+            disabled={guestLoading}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
+              border: '1px solid #DDD7C6', background: '#fff', color: '#6B6757',
+              fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14,
+              fontFamily: 'var(--font)', cursor: guestLoading ? 'not-allowed' : 'pointer',
+              opacity: guestLoading ? 0.7 : 1,
+            }}
+          >
+            <span className="ms" style={{ fontSize: 19 }}>visibility</span>
+            {guestLoading ? '체험 준비 중...' : '게스트로 체험하기'}
+          </button>
+          {guestError && (
+            <div style={{ textAlign: 'center', fontSize: 13, color: '#B5524A', marginTop: 4 }}>{guestError}</div>
           )}
           <div style={{ textAlign: 'center', fontSize: 11.5, color: '#b3ad9d', marginTop: 8, lineHeight: 1.5 }}>
             로그인 시 이용약관 및 개인정보처리방침에<br />동의하는 것으로 간주합니다.

@@ -16,3 +16,6 @@ supabase/.temp/
 .env
 .env.local
 .env.*.local
+
+# 시연용 더미 데이터 스크립트 (실제 계정 UUID 포함 — 커밋 금지)
+supabase/*_demo_dummy_data.sql
