@@ -75,6 +75,10 @@ export default function HomePage() {
   const [coachMessage, setCoachMessage] = useState('')
   const [coachIsAi, setCoachIsAi] = useState(false)
   const [showComeback, setShowComeback] = useState(false)
+  // 코치 팝업 — closing은 "닫는 중"(축소 애니메이션 재생 중) 상태. 애니메이션이 끝난 뒤에
+  // 실제로 화면에서 제거한다.
+  const [showCoachPop, setShowCoachPop] = useState(false)
+  const [coachPopClosing, setCoachPopClosing] = useState(false)
   const today = todayStr()
 
   // 복귀 환영 토스트 — 3일 이상 공백 후 첫 방문
@@ -85,6 +89,19 @@ export default function HomePage() {
     localStorage.setItem(key, today)
     if (prev && diffDays(today, prev) >= 3) setShowComeback(true)
   }, [user, today])
+
+  // 코치 팝업 — 오늘 처음 홈에 들어왔을 때 한 번만. 복귀 토스트가 뜨는 날(3일 이상 공백)에는
+  // 두 개가 동시에 뜨므로 건너뛴다. 복귀 토스트와 달리 자동으로 닫히지 않는다(사용자 결정) —
+  // 닫기 버튼·바깥 탭·스와이프로만 닫는다.
+  useEffect(() => {
+    if (!user) return
+    const key = `milrim_coach_seen_${user.id}`
+    if (localStorage.getItem(key) === today) return
+    // 복귀 토스트 판정이 위 effect에서 먼저 끝나 있어야 하므로 showComeback을 함께 본다.
+    if (showComeback) return
+    localStorage.setItem(key, today)
+    setShowCoachPop(true)
+  }, [user, today, showComeback])
 
   // 토스트 자동 닫기 — 위 effect에 두면 user 객체가 갱신될 때 cleanup이 타이머를 지워버려
   // (재실행 시엔 이미 오늘 날짜가 저장돼 있어 새 타이머도 안 걸린다) 토스트가 영영 남는다.
@@ -156,6 +173,33 @@ export default function HomePage() {
     window.addEventListener('resize', measure)
     return () => window.removeEventListener('resize', measure)
   }, [loading, goals.length])
+
+  // 코치 팝업 닫기 — 곧바로 지우지 않고 축소 애니메이션(0.2s)을 재생한 뒤 제거한다.
+  const closeCoachPop = () => {
+    setCoachPopClosing(true)
+    setTimeout(() => {
+      setShowCoachPop(false)
+      setCoachPopClosing(false)
+    }, 200)
+  }
+
+  // 코치 팝업 바깥(어두운 배경) 탭으로 닫기. 배경 요소에 직접 onClick을 걸므로 복귀 토스트처럼
+  // document 전역 리스너를 쓸 필요가 없다.
+  // 팝업을 위·아래로 40px 이상 끌면(스와이프) 닫기 — 복귀 토스트와 같은 방식.
+  const coachDragStartY = useRef<number | null>(null)
+  const handleCoachPointerDown = (e: ReactPointerEvent) => {
+    coachDragStartY.current = e.clientY
+  }
+  const handleCoachPointerMove = (e: ReactPointerEvent) => {
+    if (coachDragStartY.current == null) return
+    if (Math.abs(e.clientY - coachDragStartY.current) > 40) {
+      coachDragStartY.current = null
+      closeCoachPop()
+    }
+  }
+  const handleCoachPointerUp = () => {
+    coachDragStartY.current = null
+  }
 
   // 토스트를 위·아래로 40px 이상 끌면(스와이프) 닫기
   const comebackDragStartY = useRef<number | null>(null)
@@ -260,20 +304,38 @@ export default function HomePage() {
     window.location.reload()
   }
 
+  // 개발 전용 — 코치 팝업 테스트 버튼. 오늘 본 기록을 지우고 바로 다시 띄운다.
+  const handleDevResetCoachPop = () => {
+    Object.keys(localStorage).filter(k => k.startsWith('milrim_coach_seen_')).forEach(k => localStorage.removeItem(k))
+    setCoachPopClosing(false)
+    setShowCoachPop(true)
+  }
+
   return (
     <Layout title={`안녕하세요, ${displayName}님`}>
       {import.meta.env.DEV && (
-        <button
-          onClick={handleDevResetComeback}
-          style={{
-            position: 'fixed', top: 10, right: 10, zIndex: 500,
-            border: '1px dashed #b3ad9d', background: '#fff', color: '#847f6f',
-            fontSize: 11, fontWeight: 700, padding: '6px 10px', borderRadius: 10,
-            cursor: 'pointer',
-          }}
-        >
-          테스트: 복귀 토스트 띄우기
-        </button>
+        <div style={{ position: 'fixed', top: 10, right: 10, zIndex: 500, display: 'flex', gap: 6 }}>
+          <button
+            onClick={handleDevResetComeback}
+            style={{
+              border: '1px dashed #b3ad9d', background: '#fff', color: '#847f6f',
+              fontSize: 11, fontWeight: 700, padding: '6px 10px', borderRadius: 10,
+              cursor: 'pointer',
+            }}
+          >
+            테스트: 복귀 토스트 띄우기
+          </button>
+          <button
+            onClick={handleDevResetCoachPop}
+            style={{
+              border: '1px dashed #b3ad9d', background: '#fff', color: '#847f6f',
+              fontSize: 11, fontWeight: 700, padding: '6px 10px', borderRadius: 10,
+              cursor: 'pointer',
+            }}
+          >
+            테스트: 코치 팝업 띄우기
+          </button>
+        </div>
       )}
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
@@ -285,6 +347,42 @@ export default function HomePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14, fontSize: 12.5, color: 'var(--primary)', fontWeight: 700 }}>
             <span className="ms" style={{ fontSize: 16 }}>eco</span>
             {studyDayCount > 0 ? `${studyDayCount}일째 숲을 가꾸는 중이에요` : '오늘부터 숲을 가꿔볼까요?'}
+          </div>
+
+          {/* AI 메이트 카드 — 화면 최상단(카운터 바로 아래)으로 이동. 원래는 아래 "오늘 할 일"
+              옆 2칸 그리드의 두 번째 칸이었다(2026-08-02 재배치). */}
+          <div style={{ background: 'var(--primary-tint)', borderRadius: 22, padding: 22, display: 'flex', flexDirection: 'column', gap: 13, marginBottom: 16 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+              <span className="ms" style={{ fontSize: 28 }}>eco</span>
+            </div>
+            {coachIsAi && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: 'var(--primary)', opacity: 0.75 }}>
+                <span className="ms" style={{ fontSize: 13 }}>auto_awesome</span>
+                AI 메이트의 오늘 한마디
+              </div>
+            )}
+            <div style={{ fontSize: 15, color: 'var(--primary)', lineHeight: 1.65, fontWeight: 600 }}>
+              {coachMessage}
+            </div>
+            {coachIsAi && (
+              <div style={{ textAlign: 'right', fontSize: 10.5, color: 'var(--primary)', opacity: 0.55, letterSpacing: 0.3 }}>
+                Powered by Solar
+              </div>
+            )}
+            {mostOverdue && (
+              <button
+                onClick={() => navigate('/replan', { state: { planId: mostOverdue.id } })}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                  border: 'none', background: 'var(--primary)', color: '#fff',
+                  fontSize: 14, fontWeight: 700, padding: '13px 16px', borderRadius: 12,
+                  fontFamily: 'var(--font)', cursor: 'pointer', marginTop: 3,
+                }}
+              >
+                <span className="ms" style={{ fontSize: 18 }}>auto_awesome</span>
+                '{mostOverdue.title}' 이어가기
+              </button>
+            )}
           </div>
 
           {/* Goal cards header */}
@@ -422,41 +520,69 @@ export default function HomePage() {
                 </div>
               )}
             </div>
-
-            <div style={{ flex: 1, background: 'var(--primary-tint)', borderRadius: 22, padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 13 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
-                <span className="ms" style={{ fontSize: 28 }}>eco</span>
-              </div>
-              {coachIsAi && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: 'var(--primary)', opacity: 0.75 }}>
-                  <span className="ms" style={{ fontSize: 13 }}>auto_awesome</span>
-                  AI 메이트의 오늘 한마디
-                </div>
-              )}
-              <div style={{ fontSize: 15, color: 'var(--primary)', lineHeight: 1.65, fontWeight: 600 }}>
-                {coachMessage}
-              </div>
-              {coachIsAi && (
-                <div style={{ textAlign: 'right', fontSize: 10.5, color: 'var(--primary)', opacity: 0.55, letterSpacing: 0.3 }}>
-                  Powered by Solar
-                </div>
-              )}
-              {mostOverdue && (
-                <button
-                  onClick={() => navigate('/replan', { state: { planId: mostOverdue.id } })}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                    border: 'none', background: 'var(--primary)', color: '#fff',
-                    fontSize: 14, fontWeight: 700, padding: '13px 16px', borderRadius: 12,
-                    fontFamily: 'var(--font)', cursor: 'pointer', marginTop: 3,
-                  }}
-                >
-                  <span className="ms" style={{ fontSize: 18 }}>auto_awesome</span>
-                  '{mostOverdue.title}' 이어가기
-                </button>
-              )}
-            </div>
           </div>
+
+          {/* 코치 팝업 — 오늘 첫 방문 시 1회. 배경을 한 톤 어둡게 덮어 팝업만 또렷하게 보이도록 한다.
+              닫으면 배경이 원래 밝기로 돌아오고 팝업은 작아지며 사라진다. */}
+          {showCoachPop && (
+            <div
+              className={coachPopClosing ? 'coach-backdrop-out' : 'coach-backdrop-in'}
+              onClick={closeCoachPop}
+              style={{
+                position: 'fixed', inset: 0, zIndex: 400,
+                background: 'rgba(30, 35, 28, 0.45)',
+                display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+                padding: '14vh 20px 20px',
+              }}
+            >
+              <div
+                className={coachPopClosing ? 'coach-pop-out' : 'coach-pop-in'}
+                // 팝업 안쪽을 눌렀을 때 배경 클릭으로 번져 닫히지 않도록 막는다.
+                onClick={e => e.stopPropagation()}
+                onPointerDown={handleCoachPointerDown}
+                onPointerMove={handleCoachPointerMove}
+                onPointerUp={handleCoachPointerUp}
+                onPointerCancel={handleCoachPointerUp}
+                style={{
+                  width: '100%', maxWidth: 420,
+                  background: 'var(--primary-tint)', borderRadius: 22, padding: '24px 24px 20px',
+                  display: 'flex', flexDirection: 'column', gap: 13,
+                  boxShadow: '0 14px 34px rgba(0,0,0,0.28)',
+                  touchAction: 'none',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', flexShrink: 0 }}>
+                    <span className="ms" style={{ fontSize: 28 }}>eco</span>
+                  </div>
+                  <button
+                    onClick={closeCoachPop}
+                    aria-label="닫기"
+                    style={{
+                      border: 'none', background: 'transparent', color: 'var(--primary)', opacity: 0.6,
+                      cursor: 'pointer', padding: 4, display: 'flex', flexShrink: 0,
+                    }}
+                  >
+                    <span className="ms" style={{ fontSize: 20 }}>close</span>
+                  </button>
+                </div>
+                {coachIsAi && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: 'var(--primary)', opacity: 0.75 }}>
+                    <span className="ms" style={{ fontSize: 13 }}>auto_awesome</span>
+                    AI 메이트의 오늘 한마디
+                  </div>
+                )}
+                <div style={{ fontSize: 15.5, color: 'var(--primary)', lineHeight: 1.65, fontWeight: 600 }}>
+                  {coachMessage}
+                </div>
+                {coachIsAi && (
+                  <div style={{ textAlign: 'right', fontSize: 10.5, color: 'var(--primary)', opacity: 0.55, letterSpacing: 0.3 }}>
+                    Powered by Solar
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* 복귀 환영 토스트 — 옵션 A: 아이보리(카드 위에서도 또렷) */}
           {showComeback && (

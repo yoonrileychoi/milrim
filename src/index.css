@@ -191,6 +191,30 @@ body {
 .fade-in { animation: dfade 0.4s ease; }
 .pop-in { animation: dpop 0.3s ease; }
 
+/* 코치 팝업 — 열릴 때는 살짝 커지며 나타나고, 닫을 때는 작아지며 사라진다.
+   닫힘 애니메이션은 요소를 곧바로 제거하면 보이지 않으므로, HomePage에서 closing 상태를
+   한 박자 두었다가(애니메이션 길이만큼) 제거한다. */
+@keyframes coachIn {
+  from { transform: scale(0.94); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes coachOut {
+  from { transform: none; opacity: 1; }
+  to { transform: scale(0.94); opacity: 0; }
+}
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes backdropOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.coach-pop-in { animation: coachIn 0.24s ease-out; }
+.coach-pop-out { animation: coachOut 0.2s ease-in forwards; }
+.coach-backdrop-in { animation: backdropIn 0.24s ease-out; }
+.coach-backdrop-out { animation: backdropOut 0.2s ease-in forwards; }
+
 /* 홈 "오늘 할 일" 목록 — 데스크톱은 4개, 모바일(1000px 미만, 기존 레이아웃 전환 기준과 동일)은
    2개까지만 보이고 나머지는 세로 스크롤로 본다. 실제 렌더링 항목 자체도 최대 10개로 제한한다
    (HomePage.tsx에서 slice(0, 10)). 항목 높이는 패딩 13px×2 + 본문 2줄(제목·목표량) 기준 추정치라
