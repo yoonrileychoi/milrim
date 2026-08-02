@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>밀림 — 모바일 미리보기</title>
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #F0EADC;
+      color: #2B2A26;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .top {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .back {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #2E5A3A;
+      text-decoration: none;
+    }
+    .label {
+      font-size: 12.5px;
+      color: #8a8471;
+    }
+    .frame-viewport {
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .scale-wrap { transform-origin: center center; }
+    .phone-frame {
+      width: 390px;
+      height: 844px;
+      box-sizing: content-box;
+      background: #111;
+      border-radius: 46px;
+      padding: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+    .phone-frame iframe {
+      display: block; width: 100%; height: 100%;
+      border: none; border-radius: 26px; background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a class="back" href="../">← 가이드로 돌아가기</a>
+    <div class="label">밀림 모바일 미리보기</div>
+  </div>
+  <div class="frame-viewport">
+    <div class="scale-wrap" id="phoneWrap">
+      <div class="phone-frame">
+        <iframe src="https://yoonrileychoi.github.io/milrim/login?guest=1" title="밀림 모바일 미리보기"></iframe>
+      </div>
+    </div>
+  </div>
+  <script>
+    function fitPhone() {
+      var wrap = document.getElementById('phoneWrap');
+      var viewport = wrap.parentElement;
+      var frame = wrap.firstElementChild;
+      var scaleH = viewport.clientHeight / frame.offsetHeight;
+      var scaleW = viewport.clientWidth / frame.offsetWidth;
+      var scale = Math.max(0.3, Math.min(1, scaleH, scaleW));
+      wrap.style.transform = 'scale(' + scale + ')';
+    }
+    window.addEventListener('load', fitPhone);
+    window.addEventListener('resize', fitPhone);
+  </script>
+</body>
+</html>

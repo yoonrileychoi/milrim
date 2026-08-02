@@ -99,7 +99,7 @@ export default function LoginPage() {
             }}
           >
             <span className="ms" style={{ fontSize: 19 }}>visibility</span>
-            {guestLoading ? '체험 준비 중...' : '게스트로 체험하기'}
+            {guestLoading ? '체험 준비 중...' : '로그인 없이 둘러보기'}
           </button>
           {guestError && (
             <div style={{ textAlign: 'center', fontSize: 13, color: '#B5524A', marginTop: 4 }}>{guestError}</div>
