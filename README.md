@@ -6,7 +6,7 @@
 > 밀려도 괜찮은 AI 생성 학습 플래너
 > 작은 공부들이 쌓여 숲을 이룹니다.
 
-🌿 [서비스 바로가기](https://yoonrileychoi.github.io/milrim/)
+🌿 [서비스 바로가기](https://yoonrileychoi.github.io/milrim/planner/)
 
 ---
 
